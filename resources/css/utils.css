@@ -1,0 +1,237 @@
+/* TOAST NOTIFICATION */
+#toast-container {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+}
+
+.toast {
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: var(--shadow-lg);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 90vw;
+    width: max-content;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    pointer-events: none;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast.success {
+    background-color: var(--success-color);
+}
+
+.toast.error {
+    background-color: var(--error-color);
+}
+
+.toast.warning {
+    background-color: var(--accent-color);
+    color: #000;
+}
+
+.toast.info {
+    background-color: var(--primary-color);
+    color: #000;
+}
+
+.toast .material-icons {
+    font-size: 18px;
+}
+
+/* ------------ PNLS */
+.tooltip {
+    display: none;
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    padding: 5px;
+    margin-top: 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    z-index: 990;
+    pointer-events: none;
+    min-width: 100px;
+    left: calc(40% - 50px);
+}
+
+.popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.705);
+    color: rgb(231, 215, 215);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 90;
+    font-size: 20px;
+}
+
+.popup p {
+    font-size: 30px;
+    color: rgb(243, 239, 239);
+}
+
+.popup button {
+    max-width: 200px;
+}
+
+/* ------------ CONFIRMATION */
+.confirmation-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.confirmation-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+}
+
+.confirmation-content {
+    position: relative;
+    background-color: var(--surface-color);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--primary-color);
+    animation: slideUp 0.3s ease-out;
+    margin: 0 auto;
+}
+
+.confirmation-message {
+    background-color: rgba(0, 0, 0, 0.3);
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    margin: 1.5rem 0;
+    text-align: center;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+}
+
+.confirmation-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.confirmation-button {
+    min-width: 100px;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    cursor: pointer;
+    flex: 1;
+}
+
+.confirmation-button.confirm {
+    background-color: var(--success-color);
+    color: #000;
+}
+
+.confirmation-button.deny {
+    background-color: var(--error-color);
+    color: #000;
+}
+
+.confirmation-button.cancel {
+    background-color: var(--bg-input-color);
+    color: var(--text-primary);
+}
+
+.confirmation-button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.confirmation-button.confirm:hover {
+    background-color: #3d8b40;
+}
+
+.confirmation-button.deny:hover {
+    background-color: #b85563;
+}
+
+.confirmation-button.cancel:hover {
+    background-color: #3d3d3d;
+}
+
+/* ------------ STYLES */
+.acrylic {
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    background-blend-mode: exclusion;
+}
+
+.hidden {
+    display: none !important;
+}
+
+
+@media screen and (max-width: 768px) {
+    .confirmation-content {
+        padding: 1rem;
+        max-width: 95%;
+        margin: 10px;
+    }
+    
+    .confirmation-message {
+        margin: 1rem 0;
+        padding: 0.8rem;
+        font-size: 1rem;
+    }
+    
+    .confirmation-buttons {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .confirmation-button {
+        width: 100%;
+        padding: 0.75rem;
+        min-width: auto;
+    }
+    
+    .confirmation-modal {
+        align-items: flex-end;
+        padding-bottom: 20px;
+    }
+}

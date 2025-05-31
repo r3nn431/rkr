@@ -1,0 +1,1 @@
+neu run "--" --window-enable-inspector
