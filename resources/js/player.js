@@ -734,7 +734,7 @@ let player = null;
 export function createPlayer() {
     player = new Player();
     player.updateStats();
-    playerDebug();
+    //playerDebug();
     return player;
 }
 
