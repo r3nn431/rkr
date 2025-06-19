@@ -1,3 +1,3 @@
 # ROLE KILL REST
 
-Game in progress.
+A dungeon crawler game in progress!

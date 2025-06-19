@@ -11,3 +11,9 @@ neutralino.js
 # Neutralinojs related files
 .storage
 *.log
+/.tmp
+
+# RKR related files
+/data
+/saves
+/resources/assets

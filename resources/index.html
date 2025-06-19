@@ -6,21 +6,192 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>RKR</title>
     <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+    <link rel="preload" href="assets/fonts/MaterialSymbolsOutlined-VariableFont_FILL,GRAD,opsz,wght.ttf" as="font" type="font/ttf" crossorigin>
+    <link rel="preload" href="assets/fonts/icomoon.ttf" as="font" type="font/ttf" crossorigin>
+    <link rel="stylesheet" href="/css/icomoon.css" type="text/css">
     <link rel="stylesheet" href="/css/main.css" type="text/css">
     <link rel="stylesheet" href="/css/animations.css" type="text/css">
     <link rel="stylesheet" href="/css/utils.css" type="text/css">
     <link rel="stylesheet" href="/css/game.css" type="text/css">
   </head>
   <body>
-    <div id="menu-container" data-pages="start">
-      <div id="menu-title">ROLE</div>
-      <div id="menu-btns">
-        <button class="btns-terminal" id="btn-menu-start">Enter the dungeon</button>
-        <button class="btns-terminal" id="btn-menu-leave">Reconsider</button>
+    <div id="menu-container" class="vhs" data-pages="main">
+      <div class="crt">
+        <div id="preload" class="hidden">
+          <p>LOADING</p>
+        </div>
+        <div id="menu-content" class="screen-on">
+          <div id="menu-title">
+            <div class="title-word" id="word1">ROLE</div>
+            <div class="title-word" id="word2">KILL</div>
+            <div class="title-word" id="word3">REST</div>
+          </div>
+          <div class="menu-btns">
+            <button id="btn-menu-start">Enter the dungeon</button>
+            <button id="btn-menu-leave">Reconsider</button>
+          </div>
+          <p id="app-info">v<span id="version"></span> by r3nn431</p>
+        </div>
       </div>
-      <p id="app-info">v<span id="version"></span> by r3nn431</p>
     </div>
-    <div id="game-container" data-pages="start" class="hidden">
+    <div id="game-container" data-pages="main" class="hidden">
+      <div id="player-hit-effect"></div>
+      <div id="game-ui">
+        <div class="side-panel" id="left-panel">
+          <div id="character" data-pages="side">
+            <h3>CHARACTER</h3>
+            <h2>The <span id="player-title">Hero</span></h2>
+            <div id="player-hp-container"></div>
+            <div id="player-xp-container"></div>
+            <div id="player-attackcd-container"></div>
+            <hr class="animated">
+            <p>Constituition: <span id="player-con">0</span></p>
+            <p>Defense: <span id="player-def">0</span></p>
+            <p>Strength: <span id="player-str">0</span></p>
+            <p>Dexterity: <span id="player-dex">0</span></p>
+            <p>Intelligence: <span id="player-int">0</span></p>
+            <hr class="animated">
+            <h4>EFFECTS</h4>
+            <div id="effects-container"></div>
+          </div>
+          <div id="inventory" class="hidden" data-pages="side">
+            <h3>INVENTORY</h3>
+            <div id="inventory-container">You currently have no items.</div>
+          </div>
+          <div id="log" class="hidden" data-pages="side">
+            <h3>LOG</h3>
+            <div id="log-container"></div>
+          </div>
+          <div id="abilities" class="hidden" data-pages="side">
+            <h3>ABILITIES</h3>
+            <div id="abilities-container"></div>
+          </div>
+          <div id="settings" class="hidden" data-pages="side">
+            <h3>SETTINGS</h3>
+            <div class="settings-content">
+              <div class="setting-group">
+                <h4>Audio Settings</h4>
+                <div class="setting-item">
+                  <label for="bgm-volume">BGM Volume</label>
+                  <input type="range" id="bgm-volume" min="0" max="100">
+                  <span id="bgm-volume-value">100%</span>
+                </div>
+                <div class="setting-item">
+                  <label for="sfx-volume">SFX Volume</label>
+                  <input type="range" id="sfx-volume" min="0" max="100">
+                  <span id="sfx-volume-value">100%</span>
+                </div>
+              </div>
+              <div class="setting-group">
+                <h4>Game Settings</h4>
+                <div class="setting-item">
+                  <label for="text-speed">Text Speed</label>
+                  <input type="range" id="text-speed" min="0" max="100">
+                  <span id="text-speed-value">30</span>
+                </div>
+                <div class="setting-item">
+                  <label for="enemy-speed">Enemy Speed</label>
+                  <select id="enemy-speed">
+                      <option value="SLOW">Slow</option>
+                      <option value="NORMAL" selected>Normal</option>
+                      <option value="FAST">Fast</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="help" class="hidden" data-pages="side">
+            <h3>HELP</h3>
+            <p>Any feedback, suggestion or bug report? <a href="https://github.com/r3nn431/RKR/issues" target="_blank">Submit an issue on GitHub</a> or send a email to <a href="mailto:pizzalab@googlegroups.com">pizzalab@googlegroups.com</a> put in the email subject [RKR] and the type of your contact (feedback, suggestion or bug). If it's a bug report please include the steps to reproduce the bug and attach the 'error.log' file.</p><br>
+            <h4>How to play</h4>
+            <p>The game doesn't have a real ending, but you can achieve something similar as you play.</p>
+            <p>About the player attibutes</p>
+            <p>Constituition: The player's health.</p>
+            <p>Defense: The player's defense against attacks.</p>
+            <p>Strength: The player's attack power.</p>
+            <p>Dexterity: The player's chance to dodge attacks and escape dangers.</p>
+            <p>Intelligence: The player's chance to find things.</p>
+            <hr class="animated">
+            <h4>About the development</h4>
+            <p>This game came from a long development, longer than necessary. It all started with a game I made in Twine (interactive text) because I really wanted to make a simple RPG game but it still wasn't enough. That's when I started doing it in Java, but I had some problems because I was still learning. After a few more attempts with other languages ​​and platforms, the game finally came out using NeutralinoJS.</p>
+            <p>I was heavily inspired by Kingsway when making this game, which I really advise everyone to play as it's a wonderful game. This game is not perfect and it's not a game that will get you addicted, but it's made with love, born from a hobby that I really enjoyed being able to do and finish.</p>
+            <hr class="animated">
+            <h4>Credits</h4>
+          </div>
+          <div id="files" class="hidden" data-pages="side">
+            <h3>SAVE/LOAD</h3>
+            <p id="files-info">Create a new game or load your previous save</p>
+            <button class="btns-icon" id="btn-slot0">
+              <span class="material-icons">save</span>
+              <span>SLOT 0 <span id="slot0"></span></span>
+            </button>
+            <button class="btns-icon" id="btn-slot1">
+              <span class="material-icons">save</span>
+              <span>SLOT 1 <span id="slot1"></span></span>
+            </button>
+            <button class="btns-icon" id="btn-slot2">
+              <span class="material-icons">save</span>
+              <span>SLOT 2 <span id="slot2"></span></span>
+            </button>
+          </div>
+          <div id="statistics" class="hidden" data-pages="side">
+            <h3>STATISTICS</h3>
+            <p>Started at: <span id="current-startdate">00/00/0000</span></p>
+            <p>Elapsed game time: <span id="current-playtime">00:00:00</span></p>
+            <p>Distance: <span id="current-distance">0</span></p>
+            <p>Total kills: <span id="current-total-kills">0</span></p>
+          </div>
+        </div>
+        <div id="main-game">
+          <div id="bg-container">
+              <img id="bg" src="">
+            <div class="game-actions">
+              <button id="btn-advance">ADVANCE</button>
+            </div>
+          </div>
+        <div id="dialogbox"></div>
+        </div>
+        <div class="side-panel" id="right-panel">
+          <button class="btns-icon" id="btn-exit-game">
+            <span class="material-icons">exit_to_app</span>
+            <span>Exit</span>
+          </button>
+          <hr class="animated">
+          <button class="btns-icon" id="btn-settings">
+            <span class="material-icons">settings</span>
+            <span>Settings</span>
+          </button>
+          <button class="btns-icon" id="btn-help">
+            <span class="material-icons">help_outline</span>
+            <span>Help</span>
+          </button>
+          <button class="btns-icon" id="btn-files">
+            <span class="material-icons">bookmark</span>
+            <span>Save/Load</span>
+          </button>
+          <hr class="animated">
+          <button class="btns-icon" id="btn-character">
+            <span class="material-icons">account_circle</span>
+            <span>Character</span>
+          </button>
+          <button class="btns-icon" id="btn-inventory">
+            <span class="material-icons">backpack</span>
+            <span>Inventory</span>
+          </button>
+          <button class="btns-icon" id="btn-abilities">
+            <span class="material-icons">power</span>
+            <span>Abilities</span>
+          </button>
+          <button class="btns-icon" id="btn-statistics">
+            <span class="material-icons">insights</span>
+            <span>Statistics</span>
+          </button>
+          <button class="btns-icon" id="btn-log">
+            <span class="material-icons">list_alt</span>
+            <span>Log</span>
+          </button>
+        </div>
+      </div>
     </div>
     <script src="/js/neutralino.js"></script>
     <script type="module" src="/js/main.js"></script>

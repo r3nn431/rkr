@@ -1,80 +1,224 @@
 // js/database.js
-export const players = [
-    {
-        name: 'Hero',
-        attack: 10,
-        defense: 5,
-        constituition: 10,
-        strength: 5,
-        dexterity: 5,
-        intelligence: 5,
-        luck: 5,
-        criticalChance: 5, // 5%
-        criticalDamage: 1.5, // 150%
-        evasion: 5 
-    }
-];
 
 export const enemies = [
     {
-        id: "rat1",
+        id: "rat",
         name: 'Rat',
         rarity: 80,
-        list: "normal",
+        list: "NORMAL",
         xpReward: 8,
-        hp: 80,
-        attack: 20,
-        defense: 3,
+        hp: 15,
+        attack: 10,
+        defense: 1,
         ability: 'NONE',
         element: 'NONE',
-        type: 'MUTANT',
+        type: 'PARASITE',
         moveType: 'MIXED',
         moveSpeed: 90,
-        attackSpeed: 3000,
-        canEscape: true,
-        escapeRate: 70,
+        attackSpeed: 4000,
+        canEscape: false,
+        escapeChance: 70,
+        escapeRate: 30,
+        disablePlayerEscape: false,
+        stealth: 15,
         criticalChance: 5,
-        criticalDamage: 1.2,
+        criticalMultiplier: 1.2,
+        criticalResistance: 0,
         accuracy: 80,
         evasion: 10,
         allowSwarm: true,
         canAttack: true,
         info: 'A common enemy here',
-        img: [
-            "rat.webp"
+        img: ["rat.png"],
+        loot: [
+            {id: "test", quantity: 1, chance: 100}
         ]
+    },
+    {
+        id: "chest_mimic",
+        name: 'Mimic',
+        rarity: 0,
+        list: "SPECIAL",
+        xpReward: 20,
+        hp: 25,
+        attack: 10,
+        defense: 5,
+        ability: 'NONE',
+        element: 'NONE',
+        type: 'ANOMALY',
+        moveType: 'HORIZONTAL',
+        moveSpeed: 40,
+        attackSpeed: 4000,
+        canEscape: false,
+        escapeChance: 70,
+        escapeRate: 30,
+        disablePlayerEscape: false,
+        stealth: 10,
+        criticalChance: 1,
+        criticalMultiplier: 1.2,
+        criticalResistance: 0,
+        accuracy: 90,
+        evasion: 0,
+        allowSwarm: false,
+        canAttack: true,
+        info: 'Be careful when opening chests',
+        img: ["chest_mimic.png"],
+        loot: []
+    }
+];
+
+export const abilities = [
+    {
+        id: "passive_test",
+        name: "Iron Skin",
+        description: "Increases constitution by 2",
+        rarity: 3,
+        isSoulbound: false,
+        isPassive: true,
+        isCurse: false,
+        unlockCondition: {
+            method: "KILL",
+            id: null,
+            type: null,
+            amount: 1
+        },
+        source: "Obtained from killing a rat",
+        effects: [
+            { attribute: "CONSTITUTION", value: 2 }
+        ]
+    },
+    {
+        id: "passive_killall_50",
+        name: "Bathed in blood",
+        description: "You're getting the hang of this so it's easier to land attacks now",
+        rarity: 3,
+        isSoulbound: false,
+        isPassive: true,
+        isCurse: false,
+        unlockCondition: {
+            method: "KILL_ALL",
+            id: null,
+            type: null,
+            amount: 50
+        },
+        source: "Obtained from killing 50 enemies",
+        effects: [
+            { attribute: "ACCURACY", value: 10 }
+        ]
+    },
+    {
+        id: "power_self_damage",
+        name: "Curse of Return",
+        description: "Applies the 'Damage Return' condition to the target",
+        rarity: 4,
+        isPassive: false,
+        cooldown: 30000,
+        costValue: 20,
+        costType: "ENERGY",
+        target: "ENEMY",
+        usage: "BATTLE",
+        effectId: "effect_self_damage",
+        useCondition: []
+    },
+    {
+        id: "power_poison",
+        name: "Poison Strike",
+        description: "Applies the 'Poisoned' condition to the target",
+        rarity: 3,
+        isPassive: false,
+        cooldown: 20000,
+        costValue: 15,
+        costType: "ENERGY",
+        target: "ENEMY",
+        usage: "BATTLE",
+        effectId: "effect_poisoned",
+        useCondition: []
+    }
+];
+
+export const effects = [
+    {
+        id: "effect_poisoned",
+        name: "Poisoned",
+        description: "Does 2 damage every second for 10 seconds",
+        usage: "DAMAGE_OVER_TIME",
+        duration: 10000,
+        hasDuration: true,
+        value: 2,
+        icon: "icon-poison-bottle",
+        isDebuff: true,
+        stackable: false,
+        target: "ANY"
+    },
+    {
+        id: "effect_self_damage",
+        name: "Damage Return",
+        description: "Target's next 3 attacks revert to itself",
+        usage: "ON_ATTACK",
+        hasDuration: false,
+        uses: 3,
+        multiplier: 1.0, // ?
+        icon: "icon-divert",
+        isDebuff: true,
+        stackable: false,
+        target: "ANY"
     }
 ];
 
 export const events = [
     {
         id: "chest",
-        rarity: 50,
+        rarity: 40,
+        disableAdvance: false,
         subEvents: [
             {
                 id: "loot",
-                rarity: 6
+                rarity: 5
             },
             {
                 id: "mimic",
                 rarity: 1
             }
-        ]
+        ],
+        name: "Chest",
+        img: "chest.png",
+        actionName: "OPEN",
+        moveType: "FIXED",
+        startPosition: "MIDDLE"
     },
     {
         id: "trap",
-        rarity: 30
+        rarity: 30,
+        disableAdvance: true,
+        name: "Arrow Trap",
+        img: "arrow_trap.png",
+        actionName: "DODGE",
+        moveType: "HORIZONTAL",
+        moveSpeed: 250,
+        attack: 30
     },
     {
         id: 'enemy',
-        rarity: 70
+        rarity: 70,
+        disableAdvance: false
+    },
+    {
+        id: 'nothing',
+        rarity: 5,
+        disableAdvance: false
     }
 ]
 
 export const items = [
     {
+        id: 'test',
+        name: 'Test Item',
+        description: 'This is a test item',
         value: 30,
+        currency: 'gold',
         type: 'consumable',
-        sprite: 'potion_red.png'
+        subType: 'potion',
+        isSoulbound: false,
+        isLootable: true
     }
 ];

@@ -36,14 +36,16 @@
 
 .toast.success {
     background-color: var(--success-color);
+    color: #000;
 }
 
 .toast.error {
     background-color: var(--error-color);
+    color: #000;
 }
 
 .toast.warning {
-    background-color: var(--accent-color);
+    background-color: var(--warning-color);
     color: #000;
 }
 
@@ -194,6 +196,18 @@
     background-color: #3d3d3d;
 }
 
+.confirmation-content h3 {
+    font-family: var(--font-Quicksand);
+    font-size: 1.8rem;
+    border-left: none;
+    padding-left: 0;
+    color: #c8d6d6;
+    text-shadow: none;
+    font-weight: bold;
+    border-bottom: none;
+    padding-bottom: 0.3rem;
+}
+
 /* ------------ STYLES */
 .acrylic {
     backdrop-filter: blur(6px);
@@ -205,33 +219,75 @@
     display: none !important;
 }
 
+/* ------------ PROGRESS BARS ------------ */
+.progress-bar-container {
+    width: 100%;
+    height: 30px;
+    margin: 8px 0;
+    position: relative;
+    border: 3px solid rgb(151, 124, 124);
+    border-radius: 8px;
+}
 
-@media screen and (max-width: 768px) {
-    .confirmation-content {
-        padding: 1rem;
-        max-width: 95%;
-        margin: 10px;
-    }
-    
-    .confirmation-message {
-        margin: 1rem 0;
-        padding: 0.8rem;
-        font-size: 1rem;
-    }
-    
-    .confirmation-buttons {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-    
-    .confirmation-button {
-        width: 100%;
-        padding: 0.75rem;
-        min-width: auto;
-    }
-    
-    .confirmation-modal {
-        align-items: flex-end;
-        padding-bottom: 20px;
-    }
+.progress-bar {
+    height: inherit;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3) inset;
+    background-color: #1e1e1e;
+    border-radius: 4px;
+    border: 1px solid var(--primary-transparent);
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background-color: #4CAF50;
+    width: 0%;
+    transition: width 0.5s ease, background-color 0.3s ease;
+    position: relative;
+    border-radius: 3px;
+    box-shadow: 0 0 8px currentColor;
+}
+
+.progress-bar-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-weight: bold;
+    z-index: 2;
+    font-size: 12px;
+    text-shadow: 0px 1px 2px rgb(0, 0, 0);
+    letter-spacing: 0.5px;
+}
+
+.progress-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.2) 0%,
+        rgba(255, 255, 255, 0) 50%
+    );
+    border-radius: 10px;
+}
+
+@keyframes pulse {
+    from { opacity: 0.8; }
+    to { opacity: 1; }
+}
+@keyframes pulse-warning {
+    0% { opacity: 0.8; box-shadow: 0 0 10px rgba(207, 102, 121, 0.5); }
+    50% { opacity: 1; box-shadow: 0 0 15px rgba(207, 102, 121, 0.8); }
+    100% { opacity: 0.8; box-shadow: 0 0 10px rgba(207, 102, 121, 0.5); }
+}
+
+.progress-bar-fill.low {
+    animation: pulse-warning 1.5s infinite;
+    background: linear-gradient(135deg, var(--error-color), #e74c3c);
 }

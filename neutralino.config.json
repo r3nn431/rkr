@@ -10,15 +10,19 @@
   "enableNativeAPI": true,
   "tokenSecurity": "one-time",
   "logging": {
-    "enabled": true,
-    "writeToLogFile": true
+    "enabled": false,
+    "writeToLogFile": false
   },
   "nativeAllowList": [
     "app.*",
     "filesystem.*",
     "debug.*",
+    "os.*",
+    "storage.*",
     ".*"
   ],
+  "dataLocation": "app",
+  "storageLocation": "app",
   "globalVariables": {
   },
   "modes": {
@@ -31,13 +35,14 @@
       "center": true,
       "fullScreen": true,
       "alwaysOnTop": false,
-      "icon": "/resources/favicon.ico",
+      "icon": "resources/favicon.ico",
       "enableInspector": false,
       "borderless": false,
       "maximize": false,
       "hidden": false,
       "resizable": false,
-      "exitProcessOnClose": false
+      "exitProcessOnClose": false,
+      "transparent": true
     },
     "browser": {
       "globalVariables": {
@@ -62,6 +67,11 @@
       ]
     }
   },
+  "applicationName": "RKR",
+  "author": "r3nn431",
+  "description": "ROLE KILL REST",
+  "copyright": "Copyright © r3nn431 2025. All rights reserved.",
+  "applicationIcon": "resources/icon.png",
   "cli": {
     "binaryName": "rkr",
     "resourcesPath": "/resources/",
@@ -69,6 +79,7 @@
     "clientLibrary": "/resources/js/neutralino.js",
     "binaryVersion": "6.1.0",
     "clientVersion": "6.1.0",
-    "debugEnabled": false
+    "debugEnabled": false,
+    "copyItems": ["/README.md", "/CHANGELOG.txt"]
   }
 }

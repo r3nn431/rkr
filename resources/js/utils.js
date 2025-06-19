@@ -176,6 +176,50 @@ function adjustReceivedData(dataOriginal, dataReceived) {
     }
 }
 
+async function logError(error, type = 'handled') {
+    const LOG_PATH = 'error.log';
+    const date = formatDate(new Date(), true);
+    const logEntry = `[${date}] [${type}] ${error.name}: ${error.message}\n${error.stack || '-- no stack trace --'}\n\n`;
+    console.error(logEntry);
+    showToast('Something went wrong, see Help in how to submit a bug report', 'error');
+    try {
+        await Neutralino.filesystem.appendFile(LOG_PATH, logEntry);
+    } catch (writeError) {
+        console.error('Error logging error:', writeError);
+    }
+}
+
+function getWeightedRandom(collection, rarityKey = 'rarity') {
+    //const totalWeight = collection.reduce((sum, item) => sum + (item.rarity || 1), 0);
+    const totalWeight = collection.reduce((sum, item) => {
+        const weight = Number(item[rarityKey]);
+        return sum + (isNaN(weight) ? 0 : weight);
+    }, 0);
+    if (totalWeight <= 0) {
+        logError(new Error(`Invalid total weight (${totalWeight}) for "${collection}"`));
+        return null;
+    }
+    let random = Math.random() * totalWeight;
+    for (const item of collection) {
+        const weight = Number(item[rarityKey] || 0);
+        random -= weight;
+        if (random <= 0) return {...item};
+    }
+    return collection[collection.length - 1];
+}
+
+function showDamageNumber(damage, x, y) {
+    const popup = document.createElement('div');
+    popup.className = 'damage-popup';
+    popup.textContent = `-${damage}`;
+    popup.style.left = `${x}px`;
+    popup.style.top = `${y}px`;
+    document.getElementById('game-container').appendChild(popup);
+    setTimeout(() => {
+        popup.remove();
+    }, 1000);
+}
+
 // NEUTRALINO
 async function setStorage(filename, data){
     await Neutralino.storage.setData(filename, JSON.stringify(data));
@@ -186,12 +230,44 @@ async function getStorage(filename) {
         let temp = await Neutralino.storage.getData(filename);
         return JSON.parse(temp);
     } catch (error) {
-        //showToast(error.message);
+        logError(error);
         return null;
     }
 }
 
+async function verifyPath(path){
+    try {
+        await Neutralino.filesystem.getStats(path);
+        return true;
+    } catch (error) {
+        if (error.code === 'NE_FS_NOPATHE') return false;
+        logError(error);
+        return false;
+    }
+}
+
+async function getJsonFile(filepath) {
+    try {
+        await Neutralino.filesystem.getStats(filepath);
+        const content = await Neutralino.filesystem.readFile(filepath);
+        return JSON.parse(content);
+    } catch (error) {
+        if (error.code !== 'NE_FS_NOPATHE') logError(error);
+        return null;
+    }
+}
+
+async function setJsonFile(filepath, data) {
+    try {
+        await Neutralino.filesystem.writeFile(filepath, JSON.stringify(data, null, 4));
+        return true;
+    } catch (error) {
+        logError(error);
+        return false;
+    }
+}
+
 export { 
-    showToast, togglePnl, changePnl, createTooltip, getRandomInt, getArrayIndexByName, userConfirmation, formatDate, debounce, adjustReceivedData, 
-    setStorage, getStorage
+    showToast, togglePnl, changePnl, createTooltip, getRandomInt, getArrayIndexByName, userConfirmation, formatDate, debounce, adjustReceivedData, logError, getWeightedRandom, showDamageNumber, 
+    setStorage, getStorage, getJsonFile, setJsonFile, verifyPath
 };

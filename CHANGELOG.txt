@@ -1,0 +1,12 @@
+ROLE KILL REST - CHANGELOG
+
+EXPLICATIONS
+Version: STABLE.BETA.ALPHA.FIX
+Simbology:
+- removed content
++ added content
+/ fixed
+
+
+version: 0.0.1.0
++ Initial version
