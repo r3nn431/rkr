@@ -211,14 +211,48 @@ export const events = [
 
 export const items = [
     {
+        id: 'item-gold_coin',
+        name: 'Gold Coin',
+        description: "The dungeon's currency",
+        rarity: 90,
+        type: 'Miscellaneous',
+        subType: 'Currency',
+        isLootable: true
+    },
+    {
         id: 'item-small_hp_potion',
         name: 'Small Health Potion',
         description: 'Restores 15% of your maximum HP',
+        rarity: 80,
         price: 15,
         currency: 'item-gold_coin',
         type: 'Consumables',
-        subType: 'Health Potion',
+        subType: 'Restores HP',
         isLootable: true,
-        effects: { stat: "HEALTH", value: 0.15 }
+        effect: { value: 0.15 }
+    },
+    {
+        id: 'item-medium_hp_potion',
+        name: 'Grand Health Potion',
+        description: 'Restores 50% of your maximum HP',
+        rarity: 40,
+        price: 40,
+        currency: 'item-gold_coin',
+        type: 'Consumables',
+        subType: 'Restores HP',
+        isLootable: true,
+        effect: { value: 0.50 }
+    },
+    {
+        id: 'item-antidote',
+        name: 'Antidote',
+        description: 'Removes the "Poisoned" effect',
+        rarity: 10,
+        price: 35,
+        currency: 'item-gold_coin',
+        type: 'Consumables',
+        subType: 'Purifiers',
+        isLootable: false,
+        effect: { type: "EFFECT", stat: "effect-poisoned", value: 1 }
     }
 ];

@@ -647,19 +647,34 @@ export class Player {
         if (!item) return false;
         const itemSubType = item.details.subType.toUpperCase();
         switch (itemSubType) {
-            case 'HEALTH POTION':{
+            case 'RESTORES HP':{
                 if (this.hp === this.maxHp) {
                     showDialog('You are already at full health.', {doLog: false});
                     return false;
                 }
-                const heal = Math.min(Math.round(this.maxHp * item.details.effects.value), this.maxHp - this.hp);
+                const heal = Math.min(Math.round(this.maxHp * item.details.effect.value), this.maxHp - this.hp);
                 this.heal(heal);
                 showDialog(`Used ${item.details.name}! Healed ${heal} HP.`);
                 this.removeItem(itemId);
                 return true;
             }
+            case 'PURIFIERS': {
+                if (item.details.effect.type === "EFFECT") {
+                    const effectId = item.details.effect.id;
+                    if (!this.hasEffect(effectId)) {
+                        showDialog("You aren't being affected by this effect.", {doLog: false});
+                        return false;
+                    }
+                    this.removeEffect(effectId);
+                    this.removeItem(itemId);
+                    return true;
+                }
+            }
+            default: {
+                logError(new Error(`Unknown item subtype: ${itemSubType}`));
+                return false;
+            }
         }
-        return false;
     }
 
     updateInventoryUI() {

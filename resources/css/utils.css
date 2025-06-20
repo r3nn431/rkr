@@ -37,21 +37,25 @@
 .toast.success {
     background-color: var(--success-color);
     color: #000;
+    text-shadow: 1px 1px 2px rgb(255, 255, 255);
 }
 
 .toast.error {
     background-color: var(--error-color);
-    color: #000;
+    color: #ffffff;
+    text-shadow: 1px 1px 2px rgb(0, 0, 0);
 }
 
 .toast.warning {
     background-color: var(--warning-color);
     color: #000;
+    text-shadow: 1px 1px 2px rgb(255, 255, 255);
 }
 
 .toast.info {
     background-color: var(--primary-color);
     color: #000;
+    text-shadow: 1px 1px 2px rgb(255, 255, 255);
 }
 
 .toast .material-icons {
