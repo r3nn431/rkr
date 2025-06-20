@@ -9,17 +9,22 @@ import { clearAllEvents } from './event.js';
 export class Player {
     constructor() {
         this.title = 'Newborn';
-        this.defense = 2;
+        // ATTRIBUTES
         this.constituition = 1;
         this.strength = 5;
         this.dexterity = 5;
         this.intelligence = 5;
+        // MODIFIERS
+        this.defense = 2;
         this.luck = 5;
+        this.accuracy = 90;
+        this.knowledge = 1;
+        this.alchemy = 5;
         this.criticalChance = 15;
         this.criticalMultiplier = 1.5;
         this.criticalResistance = 0;
+        // CALCULATED STATS
         this.evasion = 5;
-        this.accuracy = 90;
         this.attack = 10;
         this.attackSpeed = 3000;
         this.maxHp = this.calculateMaxHp();
@@ -27,7 +32,7 @@ export class Player {
         this.level = 1;
         this.xp = 0;
         this.xpToNextLevel = this.calculateXpToNextLevel();
-
+        // UI
         this.hpBar = new ProgressBar({
             id: 'player-bar-hp',
             containerId: 'player-hp-container',
@@ -67,10 +72,15 @@ export class Player {
         this.elements = {
             title: document.getElementById('player-title'),
             con: document.getElementById('player-con'),
-            def: document.getElementById('player-def'),
             str: document.getElementById('player-str'),
             dex: document.getElementById('player-dex'),
             int: document.getElementById('player-int'),
+            def: document.getElementById('player-def'),
+            acc: document.getElementById('player-acc'),
+            alc: document.getElementById('player-alc'),
+            know: document.getElementById('player-know'),
+            luck: document.getElementById('player-luck'),
+            crit: document.getElementById('player-crit'),
             playtime: document.getElementById('current-playtime'),
             distance: document.getElementById('current-distance'),
             kills: document.getElementById('current-total-kills'),
@@ -91,7 +101,6 @@ export class Player {
         };
         this.kills = {};
         this.abilities = {};
-        this.abilityCooldowns = {};
         this.activeEffects = {};
         this.effectTimers = {};
         this.currentTargetingAbility = null;
@@ -228,10 +237,15 @@ export class Player {
     updateStats() {
         this.elements.title.textContent = this.title || 'Player';
         this.elements.con.textContent = this.constituition || 0;
-        this.elements.def.textContent = this.defense || 0;
         this.elements.str.textContent = this.strength || 0;
         this.elements.dex.textContent = this.dexterity || 0;
         this.elements.int.textContent = this.intelligence || 0;
+        this.elements.def.textContent = this.defense || 0;
+        this.elements.acc.textContent = this.accuracy || 0;
+        this.elements.know.textContent = this.knowledge || 0;
+        this.elements.alc.textContent = this.alchemy || 0;
+        this.elements.luck.textContent = this.luck || 0;
+        this.elements.crit.textContent = `${this.criticalChance}% of ${this.criticalMultiplier}` || 0;
         this.elements.kills.textContent = this.getTotalKills() || 0;
         this.elements.playtime.textContent = this.formatPlaytime() || '00:00:00';
         this.elements.distance.textContent = this.distance || 0;
@@ -275,7 +289,7 @@ export class Player {
             ...template,
             obtainedAt: Date.now(),
             remainingCooldown: 0,
-            usedFlag: false
+            usedThisBattle: false
         };
         this.applyAbilityEffects(id);
         this.updateAbilitiesUI();
@@ -292,7 +306,6 @@ export class Player {
     startAbilityCooldown(abilityId) {
         const ability = this.abilities[abilityId];
         if (!ability || !ability.cooldown) return;
-        //const cooldownEnd = this.abilityCooldowns[abilityId];
         const cooldownEnd = ability.remainingCooldown;
         const cooldownElement = document.querySelector(`.ability-item[data-ability-id="${abilityId}"] .btn-ability-use`);
         if (!cooldownElement) return;
@@ -312,13 +325,24 @@ export class Player {
 
     canUseAbility(ability) {
         if (this.isDead) return false;
-        //if (this.abilityCooldowns[ability.id] && this.abilityCooldowns[ability.id] > Date.now()) return false;
         if (ability.cooldown && ability.remainingCooldown > Date.now()) return false;
-        //if (ability.costType) {}
         switch (ability.usage) {
-            case 'BATTLE': return enemies.length > 0;
-            case 'SAFE': return enemies.length === 0;
+            case 'COMBAT': {
+                if (enemies.length === 0) {
+                    showDialog('You can only use this ability in combat.', {doLog: false});
+                    return false;
+                }
+                break;
+            }
+            case 'SAFE': {
+                if (enemies.length > 0) {
+                    showDialog('You can only use this ability outside combat.', {doLog: false});
+                    return false;
+                }
+                break;
+            }
         }
+        //if (ability.costType) {}
         return true;
     }
 
@@ -327,7 +351,6 @@ export class Player {
         if (!ability || ability.isPassive) return false;
         if (!this.canUseAbility(ability)) return false;
         if (ability.cooldown) {
-            //this.abilityCooldowns[ability.id] = Date.now() + ability.cooldown;
             ability.remainingCooldown = Date.now() + ability.cooldown;
             this.startAbilityCooldown(ability.id);
         }
@@ -338,10 +361,6 @@ export class Player {
                 break;
             }
             case "ENEMY":{
-                if (enemies.length === 0) {
-                    showDialog("No enemies to target!");
-                    return false;
-                }
                 if (enemies.length === 1) {
                     enemies[0].addEffect(ability.effectId, 'player');
                     showDialog(`Used ${ability.name} on ${enemies[0].name}!`);
@@ -463,20 +482,26 @@ export class Player {
         if (!template) return '';
         const isCurse = template.isCurse ? ' (Curse)' : '';
         const formatValue = (val) => val !== undefined ? val : 'N/A';
-        const costText = template.costValue ? `${formatValue(template.costValue)} ${template.costType || ''}` : 'No Cost';
-        const cooldownText = template.cooldown ? `${formatValue(template.cooldown) ? `${formatValue(template.cooldown)/1000}s` : ''}` : 'No Cooldown';
+        const costText = template.costValue ? `${formatValue(template.costValue)}x${template.costType || ''}` : 'None';
+        const cooldownText = template.cooldown ? `${formatValue(template.cooldown) ? `${formatValue(template.cooldown)/1000}s` : ''}` : '0s';
         const metadataElements = [];
         if (!template.isPassive) {
             metadataElements.push(
                 `<div class="ability-meta"><span class="meta-label">Cost:</span> ${costText}</div>`,
                 `<div class="ability-meta"><span class="meta-label">Cooldown:</span> ${cooldownText}</div>`,
-                `<div class="ability-meta"><span class="meta-label">Target:</span> ${template.target || 'Self'}</div>`
+                `<div class="ability-meta"><span class="meta-label">Target:</span> ${template.target || 'NONE'}</div>`
             );
         } else {
-            if (template.effect) {
+            if (template.effects) {
                 metadataElements.push(
-                    `<div class="ability-meta"><span class="meta-label">Effect:</span> ${template.effect.attribute} +${template.effect.value}</div>`
+                    `<div class="ability-meta"><span class="meta-label">Effects:\n</span>`
                 );
+                template.effects.forEach(effect => {
+                    metadataElements.push(
+                        `${effect.stat} +${effect.value}\n`
+                    );
+                });
+                metadataElements.push(`</div>`);
             }
         }
         return `
@@ -620,26 +645,20 @@ export class Player {
         if (this.isDead) return false;
         const item = this.inventory.items[itemId];
         if (!item) return false;
-        const itemType = item.details.type;
-        const itemSubType = item.details.subType;
-        // TO-DO
-        switch (itemType) {
-            case 'consumable':{
-                switch (itemSubType) {
-                    case 'potion':{
-                        this.heal(item.details.value);
-                        showDialog(`Used ${item.details.name}! Healed ${item.details.value} HP.`);
-                        this.removeItem(itemId);
-                        return true;
-                    }
+        const itemSubType = item.details.subType.toUpperCase();
+        switch (itemSubType) {
+            case 'HEALTH POTION':{
+                if (this.hp === this.maxHp) {
+                    showDialog('You are already at full health.', {doLog: false});
+                    return false;
                 }
-                break;
-            }
-            case 'equipment':{
-                break;
+                const heal = Math.min(Math.round(this.maxHp * item.details.effects.value), this.maxHp - this.hp);
+                this.heal(heal);
+                showDialog(`Used ${item.details.name}! Healed ${heal} HP.`);
+                this.removeItem(itemId);
+                return true;
             }
         }
-
         return false;
     }
 
@@ -693,10 +712,9 @@ export class Player {
                     <p>${item.details.description}</p>
                     <div class="item-meta">
                         <span class="item-quantity">x${item.quantity}</span>
-                        <span class="item-value">${item.details.value} ${item.details.currency}</span>
                     </div>
                 </div>
-                ${item.details.type === 'consumable' ? 
+                ${item.details.type === 'Consumables' ? 
                     `<button class="btn-item-use" data-item-id="${item.details.id}">Use</button>` : ''}
             </div>
         `;
@@ -734,7 +752,7 @@ let player = null;
 export function createPlayer() {
     player = new Player();
     player.updateStats();
-    //playerDebug();
+    playerDebug();
     return player;
 }
 

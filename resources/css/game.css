@@ -1224,6 +1224,7 @@ blockquote::after {
 
 .item-quantity {
     color: var(--accent-color);
+    font-size: 18px;
 }
 
 .item-value {

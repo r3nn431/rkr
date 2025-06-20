@@ -200,6 +200,7 @@ export class Event {
         switch(config.enemySpeed) {
             case 'SLOW': speedMultiplier = 0.5; break;
             case 'FAST': speedMultiplier = 1.5; break;
+            case 'ULTRA_FAST': speedMultiplier = 2.5; break;
         }
         if (this.templateId === 'trap') {
             const variation = 0.8 + Math.random() * 0.4;
@@ -318,7 +319,7 @@ export class Event {
                 const subEvent = getWeightedRandom(this.subEvents);
                 if (subEvent.id === 'mimic') {
                     showDialog('The chest was a mimic!');
-                    const mimic = callEnemy('chest_mimic');
+                    const mimic = callEnemy('enemy-chest_mimic');
                     mimic.position = {
                         x: this.position.x,
                         y: this.position.y

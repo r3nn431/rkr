@@ -215,6 +215,7 @@ export class Enemy {
         switch(config.enemySpeed) {
             case 'SLOW': speedMultiplier = 0.5; break;
             case 'FAST': speedMultiplier = 1.5; break;
+            case 'ULTRA_FAST': speedMultiplier = 2.5; break;
         }
         let lastTimestamp = 0;
         const move = (timestamp) => {

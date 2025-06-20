@@ -2,7 +2,7 @@
 
 export const enemies = [
     {
-        id: "rat",
+        id: "enemy-rat",
         name: 'Rat',
         rarity: 80,
         list: "NORMAL",
@@ -31,11 +31,11 @@ export const enemies = [
         info: 'A common enemy here',
         img: ["rat.png"],
         loot: [
-            {id: "test", quantity: 1, chance: 100}
+            {id: "item-small_hp_potion", quantity: 1, chance: 100}
         ]
     },
     {
-        id: "chest_mimic",
+        id: "enemy-chest_mimic",
         name: 'Mimic',
         rarity: 0,
         list: "SPECIAL",
@@ -69,7 +69,7 @@ export const enemies = [
 
 export const abilities = [
     {
-        id: "passive_test",
+        id: "passive-test",
         name: "Iron Skin",
         description: "Increases constitution by 2",
         rarity: 3,
@@ -84,11 +84,11 @@ export const abilities = [
         },
         source: "Obtained from killing a rat",
         effects: [
-            { attribute: "CONSTITUTION", value: 2 }
+            { stat: "CONSTITUTION", value: 2 }
         ]
     },
     {
-        id: "passive_killall_50",
+        id: "passive-killall_50",
         name: "Bathed in blood",
         description: "You're getting the hang of this so it's easier to land attacks now",
         rarity: 3,
@@ -103,42 +103,42 @@ export const abilities = [
         },
         source: "Obtained from killing 50 enemies",
         effects: [
-            { attribute: "ACCURACY", value: 10 }
+            { stat: "ACCURACY", value: 10 }
         ]
     },
     {
-        id: "power_self_damage",
+        id: "power-self_damage",
         name: "Curse of Return",
         description: "Applies the 'Damage Return' condition to the target",
         rarity: 4,
         isPassive: false,
         cooldown: 30000,
         costValue: 20,
-        costType: "ENERGY",
+        costType: "MP",
         target: "ENEMY",
-        usage: "BATTLE",
-        effectId: "effect_self_damage",
+        usage: "COMBAT",
+        effectId: "effect-self_damage",
         useCondition: []
     },
     {
-        id: "power_poison",
+        id: "power-poison",
         name: "Poison Strike",
         description: "Applies the 'Poisoned' condition to the target",
         rarity: 3,
         isPassive: false,
         cooldown: 20000,
         costValue: 15,
-        costType: "ENERGY",
+        costType: "MP",
         target: "ENEMY",
-        usage: "BATTLE",
-        effectId: "effect_poisoned",
+        usage: "COMBAT",
+        effectId: "effect-poisoned",
         useCondition: []
     }
 ];
 
 export const effects = [
     {
-        id: "effect_poisoned",
+        id: "effect-poisoned",
         name: "Poisoned",
         description: "Does 2 damage every second for 10 seconds",
         usage: "DAMAGE_OVER_TIME",
@@ -151,7 +151,7 @@ export const effects = [
         target: "ANY"
     },
     {
-        id: "effect_self_damage",
+        id: "effect-self_damage",
         name: "Damage Return",
         description: "Target's next 3 attacks revert to itself",
         usage: "ON_ATTACK",
@@ -211,14 +211,14 @@ export const events = [
 
 export const items = [
     {
-        id: 'test',
-        name: 'Test Item',
-        description: 'This is a test item',
-        value: 30,
-        currency: 'gold',
-        type: 'consumable',
-        subType: 'potion',
-        isSoulbound: false,
-        isLootable: true
+        id: 'item-small_hp_potion',
+        name: 'Small Health Potion',
+        description: 'Restores 15% of your maximum HP',
+        price: 15,
+        currency: 'item-gold_coin',
+        type: 'Consumables',
+        subType: 'Health Potion',
+        isLootable: true,
+        effects: { stat: "HEALTH", value: 0.15 }
     }
 ];
