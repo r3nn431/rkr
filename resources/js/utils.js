@@ -44,42 +44,43 @@ function changePnl(pnl, containers) {
     window.scrollTo({ top: 0 });
 }
 
-function createTooltip(father, text){
+document.querySelectorAll('.tooltip').forEach(el => {
     const tooltip = document.createElement('div');
-    tooltip.classList.add('tooltip');
-    tooltip.textContent = text;
-    const lblHover = document.querySelector(father);
-    lblHover.addEventListener('mouseover', () => {
+    tooltip.classList.add('medieval-tooltip');
+    tooltip.textContent = el.getAttribute('data-tooltip');
+    document.body.appendChild(tooltip);
+    el.addEventListener('mouseenter', () => {
         tooltip.style.display = 'block';
+        tooltip.style.opacity = '1';
     });
-    lblHover.addEventListener('mouseout', () => {
+    el.addEventListener('mouseleave', () => {
+        tooltip.style.opacity = '0';
         tooltip.style.display = 'none';
     });
-    lblHover.addEventListener('mousemove', (event) => {
+    el.addEventListener('mousemove', (event) => {
         const tooltipHeight = tooltip.offsetHeight;
-        const screenHeight = window.innerHeight;
-        const tooltipPositionTop = event.clientY - tooltipHeight - 10;
-        const tooltipPositionBottom = event.clientY + 10;
-        if (tooltipPositionTop > 0) {
-            tooltip.style.top = tooltipPositionTop + 'px';
+        const tooltipWidth = tooltip.offsetWidth;
+        let yPosition = event.clientY - tooltipHeight - 10;
+        let xPosition = event.clientX - tooltipWidth / 2;
+        if (event.clientY - tooltipHeight - 10 > 0) {
+            yPosition = event.clientY - tooltipHeight - 10;
         } else {
-            tooltip.style.top = tooltipPositionBottom + 'px';
+            yPosition = event.clientY + 20;
         }
-        tooltip.style.left = event.clientX + 'px';
+        if (xPosition + tooltipWidth > window.innerWidth) {
+            xPosition = window.innerWidth - tooltipWidth - 10;
+        } else if (xPosition < 0) {
+            xPosition = 10;
+        }
+        tooltip.style.left = `${xPosition}px`;
+        tooltip.style.top = `${yPosition}px`;
     });
-    document.body.appendChild(tooltip);
-}
+});
 
 function getRandomInt(min, max) {
     min = Math.ceil(min);
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-function getArrayIndexByName(array, name){
-    return index = array.findIndex(function(element) {
-        return element.name === name;
-    });
 }
 
 function userConfirmation(request = null, acceptText = 'Yes', recuseText = null) {
@@ -268,6 +269,6 @@ async function setJsonFile(filepath, data) {
 }
 
 export { 
-    showToast, togglePnl, changePnl, createTooltip, getRandomInt, getArrayIndexByName, userConfirmation, formatDate, debounce, adjustReceivedData, logError, getWeightedRandom, showDamageNumber, 
+    showToast, togglePnl, changePnl, getRandomInt, userConfirmation, formatDate, debounce, adjustReceivedData, logError, getWeightedRandom, showDamageNumber, 
     setStorage, getStorage, getJsonFile, setJsonFile, verifyPath
 };

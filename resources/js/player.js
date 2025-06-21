@@ -20,6 +20,7 @@ export class Player {
         this.accuracy = 90;
         this.knowledge = 1;
         this.alchemy = 5;
+        this.craftsmanship = 5;
         this.criticalChance = 15;
         this.criticalMultiplier = 1.5;
         this.criticalResistance = 0;
@@ -76,8 +77,10 @@ export class Player {
             dex: document.getElementById('player-dex'),
             int: document.getElementById('player-int'),
             def: document.getElementById('player-def'),
+            att: document.getElementById('player-att'),
             acc: document.getElementById('player-acc'),
             alc: document.getElementById('player-alc'),
+            craft: document.getElementById('player-craft'),
             know: document.getElementById('player-know'),
             luck: document.getElementById('player-luck'),
             crit: document.getElementById('player-crit'),
@@ -241,9 +244,11 @@ export class Player {
         this.elements.dex.textContent = this.dexterity || 0;
         this.elements.int.textContent = this.intelligence || 0;
         this.elements.def.textContent = this.defense || 0;
+        this.elements.att.textContent = this.attack || 0;
         this.elements.acc.textContent = this.accuracy || 0;
         this.elements.know.textContent = this.knowledge || 0;
         this.elements.alc.textContent = this.alchemy || 0;
+        this.elements.craft.textContent = this.craftsmanship || 0;
         this.elements.luck.textContent = this.luck || 0;
         this.elements.crit.textContent = `${this.criticalChance}% of ${this.criticalMultiplier}` || 0;
         this.elements.kills.textContent = this.getTotalKills() || 0;

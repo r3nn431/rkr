@@ -4,7 +4,7 @@ import {
     config, CONFIG_PATH, settingsElements, audioBGM, playBGM, playSFX, showDialog
 } from './config.js';
 import { 
-    showToast, togglePnl, changePnl, createTooltip, getRandomInt, getArrayIndexByName, userConfirmation, formatDate, debounce, adjustReceivedData, logError,
+    showToast, togglePnl, changePnl, userConfirmation, formatDate, debounce, adjustReceivedData, logError,
     setStorage, getStorage, getJsonFile, setJsonFile, verifyPath, getWeightedRandom
 } from "./utils.js";
 import { player, createPlayer } from './player.js';
@@ -244,12 +244,13 @@ function advance() {
         player.distance += 1;
         player.elements.distance.textContent = player.distance;
 
-        const event = getWeightedRandom(db.events);
-        if (!event) {
+        // get outcomes modifiers
+        const outcome = getWeightedRandom(db.events);
+        if (!outcome) {
             logError(new Error('No event found'));
             return;
         }
-        switch(event.id) {
+        switch(outcome.id) {
             case 'enemy':{
                 showDialog('An enemy approaches!');
                 const eligibleEnemies = db.enemies.filter(enemy => enemy.list === 'NORMAL');

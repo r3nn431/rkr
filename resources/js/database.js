@@ -10,9 +10,8 @@ export const enemies = [
         hp: 15,
         attack: 10,
         defense: 1,
-        ability: 'NONE',
-        element: 'NONE',
-        type: 'PARASITE',
+        ability: {},
+        type: 'MUTANT',
         moveType: 'MIXED',
         moveSpeed: 90,
         attackSpeed: 4000,
@@ -43,8 +42,7 @@ export const enemies = [
         hp: 25,
         attack: 10,
         defense: 5,
-        ability: 'NONE',
-        element: 'NONE',
+        ability: {},
         type: 'ANOMALY',
         moveType: 'HORIZONTAL',
         moveSpeed: 40,
@@ -184,7 +182,14 @@ export const events = [
         img: "chest.png",
         actionName: "OPEN",
         moveType: "FIXED",
-        startPosition: "MIDDLE"
+        startPosition: "MIDDLE",
+        loot: [
+            {id: "item-small_hp_potion", quantity: 1, chance: 80},
+            {id: "item-small_hp_potion", quantity: 1, chance: 20},
+            {id: "item-gold_coin", quantity: 1, chance: 100},
+            {id: "item-gold_coin", quantity: 5, chance: 85},
+            {id: "item-gold_coin", quantity: 3, chance: 65}
+        ]
     },
     {
         id: "trap",
@@ -199,13 +204,11 @@ export const events = [
     },
     {
         id: 'enemy',
-        rarity: 70,
-        disableAdvance: false
+        rarity: 70
     },
     {
         id: 'nothing',
-        rarity: 5,
-        disableAdvance: false
+        rarity: 5
     }
 ]
 

@@ -2,7 +2,7 @@
 import * as db from './database.js';
 import { getWeightedRandom, logError, showDamageNumber } from './utils.js';
 import { Enemy, enemies, clearAllEnemies, callEnemy } from './enemy.js';
-import { config, playBGM, playSFX, showDialog } from './config.js';
+import { config, playSFX, showDialog } from './config.js';
 import { player } from './player.js';
 
 const gameContainer = document.getElementById('game-container');
@@ -21,6 +21,7 @@ export class Event {
         this.attack = data.attack || 0;
         this.startPosition = data.startPosition || null;
         this.disableAdvance = data.disableAdvance || false;
+        this.loot = data.loot || [];
         
         events.push(this);
         if (this.disableAdvance) document.getElementById('btn-advance').disabled = true;
@@ -311,6 +312,38 @@ export class Event {
     getTemplate() {
         return db.events.find(e => e.id === this.templateId);
     }
+    
+    dropLoot() {
+        if (!this.loot || this.loot.length === 0) return;
+        const itemMap = {};
+        this.loot.forEach(lootItem => {
+            if (Math.random() * 100 <= lootItem.chance) {
+                const itemId = lootItem.id;
+                const quantity = lootItem.quantity || 1;
+                if (itemMap[itemId]) {
+                    itemMap[itemId].quantity += quantity;
+                } else {
+                    itemMap[itemId] = { 
+                        id: itemId,
+                        quantity: quantity,
+                        name: db.items.find(item => item.id === itemId)?.name || itemId
+                    };
+                }
+            }
+        });
+        const obtainedItems = Object.values(itemMap);
+        obtainedItems.forEach(item => {
+            player.addItem(item.id, item.quantity);
+        });
+        if (obtainedItems.length > 0) {
+            const lootMessage = obtainedItems.map(item => 
+                `${item.quantity}x ${item.name}`
+            ).join('<br>');
+            showDialog(`You obtained:<br>${lootMessage}`);
+        } else {
+            showDialog('You found nothing!');
+        }
+    }
 
     handleAction() {
         this.destroy();
@@ -325,17 +358,9 @@ export class Event {
                         y: this.position.y
                     };
                     mimic.updatePosition();
+                    mimic.loot = this.loot;
                 } else {
-                    const loot = db.items.filter(item => item.isLootable);
-                    const randomItem = loot[Math.floor(Math.random() * loot.length)];
-                    const quantity = Math.floor(Math.random() * 2) + 1;
-                    if (randomItem) {
-                        player.addItem(randomItem.id, quantity);
-                        showDialog(`You found ${quantity} of ${randomItem.name}!`);
-                    } else {
-                        showDialog('You found nothing!');
-                        logError(new Error(`No loot found for event ${this.templateId}, loot ${randomItem}`));
-                    }
+                    this.dropLoot();
                 }
                 break;
             }

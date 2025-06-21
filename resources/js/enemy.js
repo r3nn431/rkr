@@ -3,7 +3,7 @@ import * as db from './database.js';
 import ProgressBar from './progressBar.js';
 import { player } from './player.js';
 import { 
-    config, playBGM, playSFX, showDialog 
+    config, playSFX, showDialog 
 } from './config.js';
 import { showDamageNumber } from './utils.js';
 
@@ -495,22 +495,31 @@ export class Enemy {
 
     dropLoot() {
         if (!this.loot || this.loot.length === 0) return;
-        const obtainedItems = [];
+        const itemMap = {};
         this.loot.forEach(lootItem => {
             if (Math.random() * 100 <= lootItem.chance) {
-                player.addItem(lootItem.id, lootItem.quantity || 1);
-                obtainedItems.push({
-                    id: lootItem.id,
-                    quantity: lootItem.quantity || 1,
-                    name: db.items.find(item => item.id === lootItem.id)?.name || lootItem.id
-                });
+                const itemId = lootItem.id;
+                const quantity = lootItem.quantity || 1;
+                if (itemMap[itemId]) {
+                    itemMap[itemId].quantity += quantity;
+                } else {
+                    itemMap[itemId] = { 
+                        id: itemId,
+                        quantity: quantity,
+                        name: db.items.find(item => item.id === itemId)?.name || itemId
+                    };
+                }
             }
+        });
+        const obtainedItems = Object.values(itemMap);
+        obtainedItems.forEach(item => {
+            player.addItem(item.id, item.quantity);
         });
         if (obtainedItems.length > 0) {
             const lootMessage = obtainedItems.map(item => 
                 `${item.quantity}x ${item.name}`
             ).join('<br>');
-            showDialog(`Obtained:<br>${lootMessage}`);
+            showDialog(`You obtained:<br>${lootMessage}`);
         }
     }
 

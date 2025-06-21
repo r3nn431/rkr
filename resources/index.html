@@ -30,7 +30,7 @@
             <button id="btn-menu-start">Enter the dungeon</button>
             <button id="btn-menu-leave">Reconsider</button>
           </div>
-          <p id="app-info">v<span id="version"></span> by r3nn431</p>
+          <p id="app-info">v<span id="version"></span> by r3nn431 | <a class="link" href="https://github.com/r3nn431/rkr" target="_blank">Official Page</a></p>
         </div>
       </div>
     </div>
@@ -47,15 +47,17 @@
             <hr class="animated">
             <h4>MAIN ATTRIBUTES</h4>
             <p title="Each point increases maximum health by 20 points">Constituition: <span id="player-con">0</span></p>
-            <p>Strength: <span id="player-str">0</span></p>
+            <p class="tooltip" data-tooltip="Each point increases your attack damage by 2 points">Strength: <span id="player-str">0</span></p>
             <p>Dexterity: <span id="player-dex">0</span></p>
             <p>Intelligence: <span id="player-int">0</span></p>
             <hr class="animated">
             <h4>MODIFIERS</h4>
             <p>Defense: -<span id="player-def">0</span>% of incoming damage</p>
+            <p>Attack: <span id="player-att">0</span></p>
             <p>Accuracy: <span id="player-acc">0</span>%</p>
             <p>Knowledge: <span id="player-know">0</span></p>
             <p>Alchemy: <span id="player-alc">0</span></p>
+            <p>Craftsmanship: <span id="player-craft">0</span></p>
             <p>Luck: <span id="player-luck">0</span></p>
             <p>Critical: <span id="player-crit">0% of 1.5</span></p>
             <hr class="animated">
@@ -111,7 +113,7 @@
           </div>
           <div id="help" class="hidden" data-pages="side">
             <h3>HELP</h3>
-            <p>Any feedback, suggestion or bug report? <a href="https://github.com/r3nn431/RKR/issues" target="_blank">Submit an issue on GitHub</a> or send a email to <a href="mailto:pizzalab@googlegroups.com">pizzalab@googlegroups.com</a> put in the email subject [RKR] and the type of your contact (feedback, suggestion or bug). If it's a bug report please include the steps to reproduce the bug and attach the 'error.log' file.</p><br>
+            <p>Any feedback, suggestion or bug report? <a class="link" href="https://github.com/r3nn431/RKR/issues" target="_blank">Submit an issue on GitHub</a> or send a email to <a href="mailto:pizzalab@googlegroups.com">pizzalab@googlegroups.com</a> put in the email subject [RKR] and the type of your contact (feedback, suggestion or bug). If it's a bug report please include the steps to reproduce the bug and attach the 'error.log' file.</p><br>
             <h4>How to play</h4>
             <p>The game doesn't have a real ending, but you can achieve something similar as you play.</p>
             <hr class="animated">

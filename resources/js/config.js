@@ -69,7 +69,6 @@ function processDialogText(text) {
         .replace(/\[i\](.*?)\[\/i\]/g, '<span class="italic">$1</span>')
         .replace(/\[imp\](.*?)\[\/imp\]/g, '<span class="important">$1</span>')
         .replace(/\[c:(.*?)\](.*?)\[\/c\]/g, '<span class="$1">$2</span>')
-        .replace(/\[\/br\]/g, '<br>')
         .replace(/\n/g, '<br>');
 }
 
