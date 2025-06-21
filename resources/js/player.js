@@ -18,7 +18,7 @@ export class Player {
         this.defense = 2;
         this.luck = 5;
         this.accuracy = 90;
-        this.knowledge = 1;
+        this.charisma = 1;
         this.alchemy = 5;
         this.craftsmanship = 5;
         this.criticalChance = 15;
@@ -81,7 +81,7 @@ export class Player {
             acc: document.getElementById('player-acc'),
             alc: document.getElementById('player-alc'),
             craft: document.getElementById('player-craft'),
-            know: document.getElementById('player-know'),
+            cha: document.getElementById('player-cha'),
             luck: document.getElementById('player-luck'),
             crit: document.getElementById('player-crit'),
             playtime: document.getElementById('current-playtime'),
@@ -107,6 +107,7 @@ export class Player {
         this.activeEffects = {};
         this.effectTimers = {};
         this.currentTargetingAbility = null;
+        this.unlockedRecipes = {};
         this.startPlaytime();
         this.isDead = false;
     }
@@ -246,7 +247,7 @@ export class Player {
         this.elements.def.textContent = this.defense || 0;
         this.elements.att.textContent = this.attack || 0;
         this.elements.acc.textContent = this.accuracy || 0;
-        this.elements.know.textContent = this.knowledge || 0;
+        this.elements.cha.textContent = this.charisma || 0;
         this.elements.alc.textContent = this.alchemy || 0;
         this.elements.craft.textContent = this.craftsmanship || 0;
         this.elements.luck.textContent = this.luck || 0;

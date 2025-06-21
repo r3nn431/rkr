@@ -360,6 +360,7 @@ export class Event {
                     mimic.updatePosition();
                     mimic.loot = this.loot;
                 } else {
+                    showDialog('You open the chest and...');
                     this.dropLoot();
                 }
                 break;
