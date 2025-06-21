@@ -509,17 +509,23 @@ export class Player {
                 metadataElements.push(`</div>`);
             }
         }
+        let effectInfo = '';
+        if (template.effectId){
+            const effect = db.effects.find(e => e.id === template.effectId);
+            effectInfo = `<small class="ability-effect">'${effect.name}' Effect: ${effect.description}</small>`;
+        }
         return `
             <div class="ability-item ${template.isPassive ? 'passive' : 'power'} ${template.isCurse ? 'curse' : ''}" 
-                data-ability-id="${ability.id}">
+            data-ability-id="${ability.id}">
                 <div class="ability-header">
                     <div class="ability-title">
                         <h4>${template.name} ${isCurse}</h4>
                     </div>
                     ${!template.isPassive ? 
-                        `<button class="btn-ability-use" data-ability-id="${ability.id}" title="Use ${template.name}">Use</button>` : ''}
+                        `<button class="btn-ability-use" data-ability-id="${ability.id}">Use</button>` : ''}
                 </div>
                 <p class="ability-description">${template.description}</p>
+                ${effectInfo}
                 <div class="ability-metadata">
                     ${metadataElements.join('')}
                 </div>

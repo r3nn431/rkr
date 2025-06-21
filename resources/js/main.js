@@ -244,7 +244,6 @@ function advance() {
         player.distance += 1;
         player.elements.distance.textContent = player.distance;
 
-        // get outcomes modifiers
         const outcome = getWeightedRandom(db.events);
         if (!outcome) {
             logError(new Error('No event found'));
