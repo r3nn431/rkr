@@ -2,7 +2,7 @@
 import * as db from './database.js';
 import ProgressBar from './progressBar.js';
 import { playSFX, showDialog } from './config.js';
-import { formatDate, logError } from './utils.js';
+import { formatDate, logError, attachTooltips } from './utils.js';
 import { enemies, clearAllEnemies } from './enemy.js';
 import { clearAllEvents } from './event.js';
 
@@ -149,7 +149,7 @@ export class Player {
         showDialog(`Level up! Now you're level ${this.level}!`);
     }
 
-    addBonus(type, amount) {
+    applyModifier(type, amount) {
         switch (type) {
             case 'constitution': {
                 this.constituition += amount;
@@ -446,28 +446,28 @@ export class Player {
 
     updateAbilitiesUI() {
         const passiveAbilities = Object.values(this.abilities).filter(a => a.isPassive);
-        const activeAbilities = Object.values(this.abilities).filter(a => !a.isPassive);
-        if (passiveAbilities.length === 0 && activeAbilities.length === 0) {
+        const powersAbilities = Object.values(this.abilities).filter(a => !a.isPassive);
+        if (passiveAbilities.length === 0 && powersAbilities.length === 0) {
             this.elements.abilities.innerHTML = 'You currently have no abilities.';
             return;
         }
         let html = '';
-        if (passiveAbilities.length > 0) {
+        if (powersAbilities.length > 0) {
             html += `
                 <div class="ability-category">
-                    <h4 class="category-title">Passives</h4>
-                    ${passiveAbilities
+                    <h4 class="category-title">Powers</h4>
+                    ${powersAbilities
                         .sort((a, b) => b.obtainedAt - a.obtainedAt)
                         .map(ability => this.createAbilityHTML(ability))
                         .join('')}
                 </div>
             `;
         }
-        if (activeAbilities.length > 0) {
+        if (passiveAbilities.length > 0) {
             html += `
                 <div class="ability-category">
-                    <h4 class="category-title">Powers</h4>
-                    ${activeAbilities
+                    <h4 class="category-title">Passives</h4>
+                    ${passiveAbilities
                         .sort((a, b) => b.obtainedAt - a.obtainedAt)
                         .map(ability => this.createAbilityHTML(ability))
                         .join('')}
@@ -698,8 +698,8 @@ export class Player {
         }
         const categorizedItems = {};
         itemsList.forEach(item => {
-            const type = item.details.type;
-            const subType = item.details.subType || 'Miscellaneous';
+            const type = item.details.type || 'Miscellaneous';
+            const subType = item.details.subType || 'Unknown';
             if (!categorizedItems[type]) {
                 categorizedItems[type] = {};
             }
@@ -709,12 +709,26 @@ export class Player {
             categorizedItems[type][subType].push(item);
         });
         let html = '';
+        const subTypeDescription = {
+            'Enemy Drops': 'Materials to craft equipments and mix potions',
+            'Costs': 'Use to pay the requested amount',
+            'Valuables': 'These items sell for a good price',
+            'Restores HP': 'Potions that restore life',
+            'Purifiers': 'Potions that remove curses and debilitating effects',
+            'Fortifiers': 'Potions that give effects and/or status modifiers',
+            'Scrolls': 'Using a scroll allows you to perform a special action and then it disappears',
+            'Accessories': 'Keep equipped to gain its effects and only 1 can be equipped at a time',
+            'Weapons': 'Keep equipped to gain its effects and only 1 can be equipped at a time',
+            'Armors': 'Keep equipped to gain its effects and only 1 can be equipped at a time',
+            'Unknown': 'This is not supposed to be here'
+        };
         for (const [type, subTypes] of Object.entries(categorizedItems)) {
             html += `<div class="inventory-category">
                         <h4 class="category-title">${type.toUpperCase()}</h4>`;
             for (const [subType, items] of Object.entries(subTypes)) {
+                const tooltipText = subTypeDescription[subType] || '';
                 html += `<div class="inventory-subcategory">
-                            <h5 class="subcategory-title">${subType.toUpperCase()}</h5>
+                            <h5 class="subcategory-title tooltip" data-tooltip="${tooltipText}">${subType.toUpperCase()}</h5>
                             ${items
                                 .sort((a, b) => b.obtainedAt - a.obtainedAt)
                                 .map(item => this.createItemHTML(item))
@@ -729,6 +743,7 @@ export class Player {
                 this.useItem(e.target.dataset.itemId);
             });
         });
+        attachTooltips();
     }
 
     createItemHTML(item) {
@@ -779,8 +794,13 @@ let player = null;
 export function createPlayer() {
     player = new Player();
     player.updateStats();
+    playerStartingItems();
     playerDebug();
     return player;
+}
+
+function playerStartingItems() {
+    player.addItem('item-gold_coin', 10);
 }
 
 function playerDebug(){

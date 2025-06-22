@@ -1,6 +1,8 @@
 // js/utils.js
+
 const TOAST_DURATION = 3000;
 const TOAST_ANIMATION_DURATION = 300;
+let sharedTooltip;
 
 function showToast(message, type = 'info', duration = TOAST_DURATION) {
     let container = document.getElementById('toast-container');
@@ -44,38 +46,38 @@ function changePnl(pnl, containers) {
     window.scrollTo({ top: 0 });
 }
 
-document.querySelectorAll('.tooltip').forEach(el => {
-    const tooltip = document.createElement('div');
-    tooltip.classList.add('medieval-tooltip');
-    tooltip.textContent = el.getAttribute('data-tooltip');
-    document.body.appendChild(tooltip);
-    el.addEventListener('mouseenter', () => {
-        tooltip.style.display = 'block';
-        tooltip.style.opacity = '1';
+function attachTooltips() {
+    if (!sharedTooltip) {
+        sharedTooltip = document.createElement('div');
+        sharedTooltip.classList.add('medieval-tooltip');
+        sharedTooltip.style.display = 'none';
+        document.body.appendChild(sharedTooltip);
+    }
+    document.querySelectorAll('.tooltip').forEach(el => {
+        el.addEventListener('mouseenter', () => {
+            sharedTooltip.textContent = el.getAttribute('data-tooltip');
+            sharedTooltip.style.display = 'block';
+            sharedTooltip.style.opacity = '1';
+        });
+        el.addEventListener('mouseleave', () => {
+            sharedTooltip.style.opacity = '0';
+            sharedTooltip.style.display = 'none';
+        });
+        el.addEventListener('mousemove', (event) => {
+            const tooltipHeight = sharedTooltip.offsetHeight;
+            const tooltipWidth = sharedTooltip.offsetWidth;
+            let yPosition = event.clientY - tooltipHeight - 10;
+            let xPosition = event.clientX - tooltipWidth / 2;
+            if (yPosition < 0) yPosition = event.clientY + 20;
+            if (xPosition < 10) xPosition = 10;
+            else if (xPosition + tooltipWidth > window.innerWidth - 10) {
+                xPosition = window.innerWidth - tooltipWidth - 10;
+            }
+            sharedTooltip.style.left = `${xPosition}px`;
+            sharedTooltip.style.top = `${yPosition}px`;
+        });
     });
-    el.addEventListener('mouseleave', () => {
-        tooltip.style.opacity = '0';
-        tooltip.style.display = 'none';
-    });
-    el.addEventListener('mousemove', (event) => {
-        const tooltipHeight = tooltip.offsetHeight;
-        const tooltipWidth = tooltip.offsetWidth;
-        let yPosition = event.clientY - tooltipHeight - 10;
-        let xPosition = event.clientX - tooltipWidth / 2;
-        if (event.clientY - tooltipHeight - 10 > 0) {
-            yPosition = event.clientY - tooltipHeight - 10;
-        } else {
-            yPosition = event.clientY + 20;
-        }
-        if (xPosition + tooltipWidth > window.innerWidth) {
-            xPosition = window.innerWidth - tooltipWidth - 10;
-        } else if (xPosition < 0) {
-            xPosition = 10;
-        }
-        tooltip.style.left = `${xPosition}px`;
-        tooltip.style.top = `${yPosition}px`;
-    });
-});
+}
 
 function getRandomInt(min, max) {
     min = Math.ceil(min);
@@ -269,6 +271,6 @@ async function setJsonFile(filepath, data) {
 }
 
 export { 
-    showToast, togglePnl, changePnl, getRandomInt, userConfirmation, formatDate, debounce, adjustReceivedData, logError, getWeightedRandom, showDamageNumber, 
+    showToast, togglePnl, changePnl, getRandomInt, userConfirmation, formatDate, debounce, adjustReceivedData, logError, getWeightedRandom, showDamageNumber, attachTooltips,
     setStorage, getStorage, getJsonFile, setJsonFile, verifyPath
 };

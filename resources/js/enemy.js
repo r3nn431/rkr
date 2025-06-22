@@ -5,48 +5,50 @@ import { player } from './player.js';
 import { 
     config, playSFX, showDialog 
 } from './config.js';
-import { showDamageNumber } from './utils.js';
+import { attachTooltips, showDamageNumber } from './utils.js';
 
 const gameContainer = document.getElementById('game-container');
 export let enemies = [];
 
 export class Enemy {
     constructor(data) {
-        //Object.assign(this, data);
         this.id = `enemy-${Date.now()}`;
         this.templateId = data.id;
         this.name = data.name || 'Unnamed';
         this.rarity = data.rarity || 50;
         this.list = data.list || "NORMAL";
-        this.xpReward = data.xpReward || 10;
-        this.hp = data.hp || 20;
-        this.attack = data.attack || 10;
-        this.defense = data.defense || 0;
-        this.ability = data.ability || 'NONE';
-        this.element = data.element || 'NONE';
-        this.type = data.type || 'COMMON';
+        this.ability = data.ability || {};
+        this.type = data.type || 'UNKNOWN';
         this.moveType = data.moveType || 'HORIZONTAL';
-        this.moveSpeed = data.moveSpeed || 100;
-        this.attackSpeed = data.attackSpeed || 3000;
         this.canEscape = data.canEscape || false;
         this.escapeChance = data.escapeChance || 30;
         this.escapeRate = data.escapeRate || 20;
         this.disablePlayerEscape = data.disablePlayerEscape || false;
-        this.stealth = data.stealth || 10;
-        this.criticalChance = data.criticalChance || 0;
-        this.criticalMultiplier = data.criticalMultiplier || 1.5;
-        this.criticalResistance = data.criticalResistance || 0;
-        this.accuracy = data.accuracy || 80;
-        this.evasion = data.evasion || 5;
         this.allowSwarm = data.allowSwarm || false;
         this.canAttack = data.canAttack !== undefined ? data.canAttack : true;
         this.info = data.info || 'A dangerous enemy';
         this.img = data.img || ["default.png"];
         this.loot = data.loot || [];
 
+        this.level = this.setLevel();
+        this.xpReward = data.xpReward || 10;
+        this.hp = data.hp || 20;
         this.maxHp = this.hp;
+        this.attack = data.attack || 10;
+        this.accuracy = data.accuracy || 80;
+        this.defense = data.defense || 0;
+        this.stealth = data.stealth || 10;
+        this.evasion = data.evasion || 5;
+        
+        this.moveSpeed = data.moveSpeed || 100;
+        this.attackSpeed = data.attackSpeed || 3000;
+        this.criticalChance = data.criticalChance || 0;
+        this.criticalMultiplier = data.criticalMultiplier || 1.5;
+        this.criticalResistance = data.criticalResistance || 0;
+        this.adjustEnemyByLevel();
+
         this.effects = {};
-        this._isDestroying = false;
+        this.isDestroying = false;
         this.activeEffects = {};
         this.effectTimers = {};
 
@@ -136,10 +138,8 @@ export class Enemy {
             enableLowEffect: false
         });
 
-        // MOVEMENT
         this.setupLocation();
         this.startMovement();
-
         if(this.canAttack) this.startAttackCooldown();
         this.handleMouseEnter = () => this.element.classList.add('highlighted');
         this.handleMouseLeave = () => this.element.classList.remove('highlighted');
@@ -219,7 +219,7 @@ export class Enemy {
         }
         let lastTimestamp = 0;
         const move = (timestamp) => {
-            if (!this.element || this._isDestroying) {
+            if (!this.element || this.isDestroying) {
                 cancelAnimationFrame(this.animationFrame);
                 return;
             }
@@ -332,16 +332,15 @@ export class Enemy {
         return db.enemies.find(e => e.id === this.templateId);
     }
 
-    setLevel() {
-        const levelVariation = Math.floor(Math.random() * 3) - 1; // -1, 0 ou +1
-        const enemyLevel = Math.max(1, player.level + levelVariation);
-        this.level = enemyLevel;
-        this.typeElement.textContent = `${this.type} (Lv.${this.level || 1})`;
+    setLevel(){
+        const levelVariation = Math.floor(Math.random() * 3) - 1;
+        return Math.max(1, player.level + levelVariation);
+    }
+
+    adjustEnemyByLevel(){
         const template = this.getTemplate();
         this.maxHp = Math.floor(template.hp * (1 + (this.level - 1) * 0.2));
         this.hp = this.maxHp;
-        this.hpBar.setMax(this.maxHp);
-        this.hpBar.setCurrent(this.hp);
         this.attack = Math.floor(template.attack * (1 + (this.level - 1) * 0.15));
         this.xpReward = Math.floor(template.xpReward * (1 + (this.level - 1) * 0.3));
     }
@@ -367,6 +366,7 @@ export class Enemy {
             player.startAttackCooldown();
             this.element.classList.add('dodge-effect');
             setTimeout(() => {
+                if (!this.element) return;
                 this.element.classList.remove('dodge-effect');
             }, 300);
             return;
@@ -587,33 +587,38 @@ export class Enemy {
     }
 
     updateEffectUI() {
+        if (!this.element) return;
         this.effectContainer.innerHTML = '';
         Object.entries(this.activeEffects).forEach(([effectId, effect]) => {
             const effectTemplate = db.effects.find(e => e.id === effectId);
             if (!effectTemplate) return;
             const effectElement = document.createElement('div');
-            effectElement.className = `enemy-effect ${effectTemplate.hasDuration ? 'continuous' : 'static'} ${effectTemplate.isDebuff ? 'debuff' : 'buff'}`;
-            effectElement.title = `${effect.name}\n${effect.description}`;
+            effectElement.className = `enemy-effect ${effectTemplate.hasDuration ? 'continuous' : 'static'} ${effectTemplate.isDebuff ? 'debuff' : 'buff'} tooltip`;
             const effectIcon = document.createElement('div');
             effectIcon.className = `${effect.icon}`;
             effectElement.appendChild(effectIcon);
+            let duration = ''; 
             if (effect.hasDuration || effect.remainingUses !== null) {
                 const effectInfo = document.createElement('div');
                 effectInfo.className = 'enemy-effect-info';
                 if (effect.hasDuration) {
-                    effectInfo.textContent = Math.ceil((effect.duration - (Date.now() - effect.appliedAt))/1000);
+                    duration = `${Math.ceil((effect.duration - (Date.now() - effect.appliedAt))/1000)}s`;
+                    effectInfo.textContent = duration;
                 } else if (effect.remainingUses !== null) {
+                    duration = `x${effect.remainingUses}`;
                     effectInfo.textContent = effect.remainingUses;
                 }
                 effectElement.appendChild(effectInfo);
             }
+            effectElement.dataset.tooltip = `${effect.name} (${duration}):\n${effect.description}`;
             this.effectContainer.appendChild(effectElement);
         });
+        attachTooltips();
     }
 
     destroy(isEscaping = false) {
-        if (this._isDestroying) return;
-        this._isDestroying = true;
+        if (this.isDestroying) return;
+        this.isDestroying = true;
         cancelAnimationFrame(this.animationFrame);
         if (this.moveType === 'FIXED') {
             this.element.removeEventListener('mousedown', this.startDrag);
@@ -640,13 +645,33 @@ export class Enemy {
     }
 
     isAlive() {
-        return this.hp > 0 && this.element !== null && !this._isDestroying;
+        return this.hp > 0 && this.element !== null && !this.isDestroying;
     }
 }
 
 export function clearAllEnemies() {
     enemies.forEach(enemy => enemy.destroy());
     enemies = [];
+}
+
+function setEnemyVariation(instance){
+    const prefixes = {
+        'ANOMALY': 'Aberrant',
+        'MUTANT': 'Evolved', 
+        'UNDEAD': 'Ancient',
+        'PLAGUED': ''
+    };
+    const enemyType = instance.type.toUpperCase();
+    const prefix = prefixes[enemyType] || 'Strong';
+    instance.name = `${prefix} ${instance.name}`;
+    instance.nameElement.textContent = `${instance.name}`;
+    instance.maxHp += 10;
+    instance.hp += 10;
+    instance.hpBar.setMax(instance.maxHp);
+    instance.hpBar.setCurrent(instance.hp);
+    instance.attack += 2;
+    instance.xpReward = Math.floor(instance.xpReward * 1.5);
+    // add an ability for strong enemies
 }
 
 export function callEnemy(id){
@@ -657,15 +682,8 @@ export function callEnemy(id){
         return null;
     }
     const enemyInstance = new Enemy(selected);
-    enemyInstance.setLevel();
     if (Math.random() < 0.2) {
-        enemyInstance.nameElement.textContent = `[STRONG] ${enemyInstance.name}`;
-        enemyInstance.maxHp += 10;
-        enemyInstance.hp += 10;
-        enemyInstance.hpBar.setMax(enemyInstance.maxHp);
-        enemyInstance.hpBar.setCurrent(enemyInstance.hp);
-        enemyInstance.attack += 2;
-        enemyInstance.xpReward = Math.floor(enemyInstance.xpReward * 1.5);
+        setEnemyVariation(enemyInstance);
     }
     return enemyInstance;
 }

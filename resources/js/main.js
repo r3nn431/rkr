@@ -4,7 +4,7 @@ import {
     config, CONFIG_PATH, settingsElements, audioBGM, playBGM, playSFX, showDialog
 } from './config.js';
 import { 
-    showToast, togglePnl, changePnl, userConfirmation, formatDate, debounce, adjustReceivedData, logError,
+    showToast, togglePnl, changePnl, userConfirmation, formatDate, debounce, adjustReceivedData, logError, attachTooltips,
     setStorage, getStorage, getJsonFile, setJsonFile, verifyPath, getWeightedRandom
 } from "./utils.js";
 import { player, createPlayer } from './player.js';
@@ -167,6 +167,7 @@ Neutralino.events.on("ready", async () => {
     });
 
     document.getElementById('settings').addEventListener('change', debounce(saveConfig, 300));
+    attachTooltips();
 });
 
 function saveConfig(){
