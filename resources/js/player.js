@@ -540,14 +540,15 @@ export class Player {
             logError(new Error(`Effect ${effectId} not found`));
             return false;
         }
-        if (!effectTemplate.stackable && this.activeEffects[effectId]) {
-            this.removeEffect(effectId);
-        }
+        //if (!effectTemplate.stackable && this.activeEffects[effectId]) {}
+        this.removeEffect(effectId);
         const effect = {
             ...effectTemplate,
             appliedAt: Date.now(),
             remainingUses: effectTemplate.uses || null,
-            source: source
+            source: source,
+            timer: null,
+            interval: null
         };
         this.activeEffects[effectId] = effect;
         this.startEffectTimer(effectId);
@@ -557,9 +558,12 @@ export class Player {
 
     removeEffect(effectId) {
         if (!this.activeEffects[effectId]) return false;
-        if (this.effectTimers[effectId]) {
-            clearInterval(this.effectTimers[effectId]);
-            delete this.effectTimers[effectId];
+        const effect = this.activeEffects[effectId];
+        if (effect.timer) {
+            clearTimeout(effect.timer);
+        }
+        if (effect.interval) {
+            clearInterval(effect.interval);
         }
         delete this.activeEffects[effectId];
         this.updateEffectsUI();
@@ -569,10 +573,17 @@ export class Player {
     startEffectTimer(effectId) {
         const effect = this.activeEffects[effectId];
         if (!effect || !effect.hasDuration) return;
-        setTimeout(() => {
+        if (effect.timer) {
+            clearTimeout(effect.timer);
+        }
+        effect.timer = setTimeout(() => {
             this.removeEffect(effectId);
         }, effect.duration);
-        this.effectTimers[effectId] = setInterval(() => {
+        if (effect.interval) {
+            clearInterval(effect.interval);
+        }
+        effect.interval = setInterval(() => {
+            if (this.isDead || !this.activeEffects[effectId]) return;
             this.processEffectTick(effectId);
             this.updateEffectsUI();
         }, 1000);

@@ -50,7 +50,6 @@ export class Enemy {
         this.effects = {};
         this.isDestroying = false;
         this.activeEffects = {};
-        this.effectTimers = {};
 
         // Elements DOM
         this.element = document.createElement('div');
@@ -525,44 +524,58 @@ export class Enemy {
 
     addEffect(effectId, source = null) {
         const effectTemplate = db.effects.find(e => e.id === effectId);
-        if (!effectTemplate) return false;
-        if (!effectTemplate.stackable && this.activeEffects[effectId]) {
-            this.removeEffect(effectId);
+        if (!effectTemplate) {
+            logError(new Error(`Effect ${effectId} not found`));
+            return false;
         }
+        //if (!effectTemplate.stackable && this.activeEffects[effectId]) {}
+        this.removeEffect(effectId);
         const effect = {
             ...effectTemplate,
             appliedAt: Date.now(),
             remainingUses: effectTemplate.uses || null,
-            source: source
+            source: source,
+            timer: null,
+            interval: null
         };
         this.activeEffects[effectId] = effect;
         if (effectTemplate.hasDuration) {
             this.startEffectTimer(effectId);
         }
-        this.updateEffectUI();
+        this.updateEffectsUI();
         return true;
     }
 
     removeEffect(effectId) {
         if (!this.activeEffects[effectId]) return false;
-        if (this.effectTimers[effectId]) {
-            clearInterval(this.effectTimers[effectId]);
-            delete this.effectTimers[effectId];
+        const effect = this.activeEffects[effectId];
+        if (effect.timer) {
+            clearTimeout(effect.timer);
+        }
+        if (effect.interval) {
+            clearInterval(effect.interval);
         }
         delete this.activeEffects[effectId];
-        this.updateEffectUI();
+        this.updateEffectsUI();
         return true;
     }
 
     startEffectTimer(effectId) {
         const effect = this.activeEffects[effectId];
         if (!effect || !effect.hasDuration) return;
-        setTimeout(() => {
+        if (effect.timer) {
+            clearTimeout(effect.timer);
+        }
+        effect.timer = setTimeout(() => {
             this.removeEffect(effectId);
         }, effect.duration);
-        this.effectTimers[effectId] = setInterval(() => {
+        if (effect.interval) {
+            clearInterval(effect.interval);
+        }
+        effect.interval = setInterval(() => {
+            if (!this.isAlive() || !this.activeEffects[effectId]) return;
             this.processEffectTick(effectId);
-            this.updateEffectUI();
+            this.updateEffectsUI();
         }, 1000);
     }
 
@@ -586,7 +599,7 @@ export class Enemy {
         return !!this.activeEffects[effectId];
     }
 
-    updateEffectUI() {
+    updateEffectsUI() {
         if (!this.element) return;
         this.effectContainer.innerHTML = '';
         Object.entries(this.activeEffects).forEach(([effectId, effect]) => {
