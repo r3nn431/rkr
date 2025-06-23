@@ -9,12 +9,12 @@ import { clearAllEvents } from './event.js';
 export class Player {
     constructor() {
         this.title = 'Newborn';
-        this.attributePoints = 1;
+        this.attributePoints = 0;
         // ATTRIBUTES
         this.constitution = 1;
         this.strength = 1;
         this.dexterity = 1;
-        this.intelligence = 1;
+        this.arcane = 1;
         // MODIFIERS
         this.defense = 2;
         this.luck = 5;
@@ -34,6 +34,8 @@ export class Player {
         this.level = 1;
         this.xp = 0;
         this.xpToNextLevel = this.calculateXpToNextLevel();
+        this.mpMax = this.calculateMaxMp();
+        this.mp = this.mpMax;
         // UI
         this.hpBar = new ProgressBar({
             id: 'player-bar-hp',
@@ -43,20 +45,16 @@ export class Player {
             current: this.maxHp,
             color: 'var(--hp)',
             textTemplate: (min, current, max) => `HP ${current}/${max}`,
-            label: 'HP',
             enableLowEffect: true
         });
         this.xpBar = new ProgressBar({
             id: 'player-bar-xp',
             containerId: 'player-xp-container',
-            containerClass: 'progress-bar-container',
-            barClass: 'progress-bar',
             min: 0,
             max: this.xpToNextLevel,
             current: this.xp,
             color: 'var(--xp)',
             textTemplate: (min, current, max) => `XP ${current}/${max} (Lv.${this.level})`,
-            label: 'XP',
             enableLowEffect: false
         });
         this.attackCooldown = 0;
@@ -71,12 +69,22 @@ export class Player {
             textTemplate: () => this.attackReady ? 'READY' : `COOLDOWN ${Math.ceil(this.attackCooldown/1000)}s`,
             enableLowEffect: false
         });
+        this.mpBar = new ProgressBar({
+            id: 'player-bar-mp',
+            containerId: 'player-mp-container',
+            min: 0,
+            max: this.mpMax,
+            current: this.mpMax,
+            color: 'var(--mp)',
+            textTemplate: (min, current, max) => `MP ${current}/${max}`,
+            enableLowEffect: false
+        })
         this.elements = {
             title: document.getElementById('player-title'),
             con: document.getElementById('player-con'),
             str: document.getElementById('player-str'),
             dex: document.getElementById('player-dex'),
-            int: document.getElementById('player-int'),
+            arc: document.getElementById('player-arc'),
             def: document.getElementById('player-def'),
             att: document.getElementById('player-att'),
             acc: document.getElementById('player-acc'),
@@ -98,41 +106,95 @@ export class Player {
         this.playtime = 0;
         this.playtimeInterval = null;
         this.startDate = new Date();
-        document.getElementById('current-startdate').textContent = formatDate(this.startDate, true);
         this.distance = 0;
         this.log = [];
         this.inventory = {
-            items: {}
+            items: {},
+            equipped: []
         };
         this.kills = {};
         this.abilities = {};
         this.activeEffects = {};
+        this.effectsModifiers = {};
         this.currentTargetingAbility = null;
         this.unlockedRecipes = {};
         this.startPlaytime();
         this.isDead = false;
     }
+    
+    //@title UTILITARY METHODS
+    updateStats() {
+        document.getElementById('current-startdate').textContent = formatDate(this.startDate, true);
+        this.elements.title.textContent = this.title || 'Player';
+        this.elements.con.textContent = this.constitution || 0;
+        this.elements.str.textContent = this.strength || 0;
+        this.elements.dex.textContent = this.dexterity || 0;
+        this.elements.arc.textContent = this.arcane || 0;
+        this.elements.def.textContent = this.defense || 0;
+        this.elements.att.textContent = this.attack || 0;
+        this.elements.acc.textContent = this.accuracy || 0;
+        this.elements.cha.textContent = this.charisma || 0;
+        this.elements.alc.textContent = this.alchemy || 0;
+        this.elements.craft.textContent = this.craftsmanship || 0;
+        this.elements.luck.textContent = this.luck || 0;
+        this.elements.crit.textContent = `${this.criticalChance}% (${this.criticalMultiplier})` || 0;
+        this.elements.kills.textContent = this.getTotalKills() || 0;
+        this.elements.playtime.textContent = this.formatPlaytime() || '00:00:00';
+        this.elements.distance.textContent = this.distance || 0;
+        this.elements.ap.textContent = this.attributePoints || 0;
+        this.updateInventoryUI();
+        this.updateAbilitiesUI();
+        this.updateEffectsUI();
+    }
 
+    startPlaytime() {
+        this.playtime = 0;
+        this.playtimeInterval = setInterval(() => {
+            this.playtime += 1000;
+            this.elements.playtime.textContent = this.formatPlaytime();
+        }, 1000);
+    }
+
+    formatPlaytime() {
+        const time = Math.floor(this.playtime / 1000);
+        const hours = Math.floor(time / 3600);
+        const minutes = Math.floor((time % 3600) / 60);
+        const seconds = time % 60;
+        return [hours, minutes, seconds]
+            .map(v => String(v).padStart(2, '0'))
+            .join(':');
+    }
+
+    resetBattle(){
+        Object.values(this.abilities).forEach(ab => {
+            ab.usedThisBattle = false;
+        });
+    }
+
+    destroy() {
+        if (this.playtimeInterval) {
+            clearInterval(this.playtimeInterval);
+            this.playtimeInterval = null;
+        }
+        this.elements.log.innerHTML = '';
+        this.elements.inventory.innerHTML = '';
+        player = null;
+    }
+
+    //@title ATTRIBUTE CALCULATIONS
     calculateMaxHp() {
         return 100 + 20 * (this.constitution - 1);
+    }
+
+    calculateMaxMp() {
+        return 10 + 2 * (this.arcane - 1);
     }
 
     calculateXpToNextLevel() {
         return Math.floor(100 * Math.pow(1.2, this.level - 1));
     }
 
-    takeDamage(damage, causeOfDeath) {
-        this.hp = Math.max(0, this.hp - damage);
-        this.hpBar.setCurrent(this.hp);
-        if(this.hp <= 0) gameOver(causeOfDeath);
-    }
-
-    heal(amount) {
-        this.hp += amount;
-        if (this.hp > this.maxHp) this.hp = this.maxHp;
-        this.hpBar.setCurrent(this.hp);
-    }
-
+    //@title LEVELING
     addXp(amount) {
         this.xp += amount;
         while (this.xp >= this.xpToNextLevel) {
@@ -172,9 +234,11 @@ export class Player {
                 this.elements.dex.textContent = this.dexterity;
                 break;
             }
-            case 'intelligence':{
-                this.intelligence += amount;
-                this.elements.int.textContent = this.intelligence;
+            case 'arcane':{
+                this.arcane += amount;
+                this.elements.arc.textContent = this.arcane;
+                this.maxMp = this.calculateMaxMp();
+                this.mpBar.setMax(this.maxMp);
                 break;
             }
             default: return false;
@@ -204,6 +268,19 @@ export class Player {
         });
     }
 
+    //@title HANDLE DAMAGE
+    takeDamage(damage, causeOfDeath) {
+        this.hp = Math.max(0, this.hp - damage);
+        this.hpBar.setCurrent(this.hp);
+        if(this.hp <= 0) gameOver(causeOfDeath);
+    }
+
+    heal(amount) {
+        this.hp += amount;
+        if (this.hp > this.maxHp) this.hp = this.maxHp;
+        this.hpBar.setCurrent(this.hp);
+    }
+
     async startAttackCooldown() {
         this.attackReady = false;
         enemies.forEach(enemy => {
@@ -227,6 +304,7 @@ export class Player {
         }, 1000);
     }
 
+    //@title KILLS
     addKill(enemyTemplateId) {
         if (!this.kills[enemyTemplateId]) {
             this.kills[enemyTemplateId] = 0;
@@ -282,53 +360,7 @@ export class Player {
             : 'No enemies killed yet.';
     }
 
-    updateStats() {
-        this.elements.title.textContent = this.title || 'Player';
-        this.elements.con.textContent = this.constitution || 0;
-        this.elements.str.textContent = this.strength || 0;
-        this.elements.dex.textContent = this.dexterity || 0;
-        this.elements.int.textContent = this.intelligence || 0;
-        this.elements.def.textContent = this.defense || 0;
-        this.elements.att.textContent = this.attack || 0;
-        this.elements.acc.textContent = this.accuracy || 0;
-        this.elements.cha.textContent = this.charisma || 0;
-        this.elements.alc.textContent = this.alchemy || 0;
-        this.elements.craft.textContent = this.craftsmanship || 0;
-        this.elements.luck.textContent = this.luck || 0;
-        this.elements.crit.textContent = `${this.criticalChance}% of ${this.criticalMultiplier}` || 0;
-        this.elements.kills.textContent = this.getTotalKills() || 0;
-        this.elements.playtime.textContent = this.formatPlaytime() || '00:00:00';
-        this.elements.distance.textContent = this.distance || 0;
-        this.elements.ap.textContent = this.attributePoints;
-        this.updateInventoryUI();
-        this.updateAbilitiesUI();
-        this.updateEffectsUI();
-    }
-
-    startPlaytime() {
-        this.playtime = 0;
-        this.playtimeInterval = setInterval(() => {
-            this.playtime += 1000;
-            this.elements.playtime.textContent = this.formatPlaytime();
-        }, 1000);
-    }
-
-    formatPlaytime() {
-        const time = Math.floor(this.playtime / 1000);
-        const hours = Math.floor(time / 3600);
-        const minutes = Math.floor((time % 3600) / 60);
-        const seconds = time % 60;
-        return [hours, minutes, seconds]
-            .map(v => String(v).padStart(2, '0'))
-            .join(':');
-    }
-
-    resetBattle(){
-        Object.values(this.abilities).forEach(ab => {
-            ab.usedThisBattle = false;
-        });
-    }
-
+    //@title ABILITIES
     hasAbility(id) {
         return !!this.abilities[id];
     }
@@ -606,6 +638,7 @@ export class Player {
         `;
     }
 
+    //@title EFFECTS
     addEffect(effectId, source = null) {
         const effectTemplate = db.effects.find(e => e.id === effectId);
         if (!effectTemplate) {
@@ -710,6 +743,7 @@ export class Player {
         return !!this.activeEffects[effectId];
     }
 
+    //@title INVENTORY
     addItem(itemId, quantity = 1) {
         const itemTemplate = db.items.find(item => item.id === itemId);
         if (!itemTemplate) {
@@ -830,11 +864,15 @@ export class Player {
             });
         });
         attachTooltips();
+        setupEquipmentCheckboxes();
     }
 
     createItemHTML(item) {
+        const isEquipment = item.details.type === 'Equipments';
+        const isEquipped = this.isItemEquipped(item.details.id);
+        const isConsumable = item.details.type === 'Consumables';
         return `
-            <div class="item" data-item-id="${item.details.id}">
+            <div class="item" data-item-id="${item.details.id}" data-sub-type="${item.details.subType}">
                 <div class="item-info">
                     <h4>${item.details.name}</h4>
                     <p>${item.details.description}</p>
@@ -842,10 +880,24 @@ export class Player {
                         <span class="item-quantity">x${item.quantity}</span>
                     </div>
                 </div>
-                ${item.details.type === 'Consumables' ? 
-                    `<button class="btn-item-use" data-item-id="${item.details.id}">Use</button>` : ''}
+                ${isEquipment ? `
+                    <label class="equip-toggle">
+                        <input type="checkbox" class="equip-checkbox" 
+                            data-item-id="${item.details.id}" 
+                            data-sub-type="${item.details.subType}"
+                            ${isEquipped ? 'checked' : ''}>
+                        <span>Equip</span>
+                    </label>
+                ` : ''}
+                ${isConsumable ? `
+                    <button class="btn-item-use" data-item-id="${item.details.id}">Use</button>
+                ` : ''}
             </div>
         `;
+    }
+
+    isItemEquipped(itemId) {
+        return this.inventory.equipped.some(e => e.id === itemId);
     }
 
     hasItem(itemId) {
@@ -856,17 +908,50 @@ export class Player {
         return this.inventory.items[itemId]?.quantity || 0;
     }
 
-    destroy() {
-        if (this.playtimeInterval) {
-            clearInterval(this.playtimeInterval);
-            this.playtimeInterval = null;
-        }
-        this.elements.log.innerHTML = '';
-        this.elements.inventory.innerHTML = '';
-        player = null;
+    equipItem(itemId) {
+        const item = this.inventory.items[itemId]?.details;
+        if (!item || item.type !== 'Equipments') return false;
+        this.unequipItemsBySubType(item.subType);
+        this.inventory.equipped.push({
+            id: itemId,
+            subType: item.subType,
+            effects: item.effects || []
+        });
+        this.applyItemEffects(itemId);
+        return true;
+    }
+
+    unequipItemsBySubType(subType) {
+        const itemsToRemove = this.inventory.equipped.filter(item => item.subType === subType);
+        itemsToRemove.forEach(item => {
+            this.removeItemEffects(item.id);
+            this.inventory.equipped = this.inventory.equipped.filter(e => e.id !== item.id);
+        });
+    }
+
+    unequipItem(itemId) {
+        this.removeItemEffects(itemId);
+        this.inventory.equipped = this.inventory.equipped.filter(item => item.id !== itemId);
+    }
+
+    applyItemEffects(itemId) {
+        const item = this.inventory.items[itemId]?.details;
+        if (!item || !item.effects) return;
+        item.effects.forEach(effect => {
+            // this.applyModifier(effect.stat, effect.value);
+        });
+    }
+
+    removeItemEffects(itemId) {
+        const item = this.inventory.items[itemId]?.details;
+        if (!item || !item.effects) return;
+        item.effects.forEach(effect => {
+            // this.applyModifier(effect.stat, -effect.value);
+        });
     }
 }
 
+//@title PLAYER FUNCTIONS OUTSIDE CLASS
 function gameOver(causeOfDeath) {
     showDialog(`You have been slain by ${causeOfDeath.name}...`, { speed: 110 });
     clearAllEnemies();
@@ -886,7 +971,7 @@ export function createPlayer() {
 }
 
 function playerStartingItems() {
-    player.addItem('item-gold_coin', 10);
+    player.addItem('currency-gold_coin', 10);
 }
 
 function playerDebug(){
@@ -914,3 +999,24 @@ document.querySelectorAll('.btn-attribute.decrease').forEach(btn => {
         player.decreaseAttribute(attribute);
     });
 });
+
+function setupEquipmentCheckboxes() {
+    document.addEventListener('change', (e) => {
+        if (e.target.classList.contains('equip-checkbox')) {
+            const itemId = e.target.dataset.itemId;
+            const subType = e.target.dataset.subType;
+            document.querySelectorAll(`.equip-checkbox[data-sub-type="${subType}"]`).forEach(cb => {
+                if (cb !== e.target) {
+                    cb.checked = false;
+                    const otherItemId = cb.dataset.itemId;
+                    player.unequipItem(otherItemId);
+                }
+            });
+            if (e.target.checked) {
+                player.equipItem(itemId);
+            } else {
+                player.unequipItem(itemId);
+            }
+        }
+    });
+}

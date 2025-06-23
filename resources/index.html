@@ -40,10 +40,11 @@
         <div class="side-panel" id="left-panel">
           <div id="character" data-pages="side">
             <h3>CHARACTER</h3>
-            <h2>The <span id="player-title">Hero</span></h2>
+            <h2>The <span id="player-title">Player</span></h2>
             <div id="player-hp-container"></div>
             <div id="player-xp-container"></div>
             <div id="player-attackcd-container"></div>
+            <div id="player-mp-container"></div>
             <hr class="animated">
             <h4>MAIN ATTRIBUTES <span>(AP: <span id="player-ap">0</span>)</span></h4>
             <div class="attribute-row">
@@ -68,16 +69,16 @@
               </div>
             </div>
             <div class="attribute-row">
-              <p>Intelligence: <span id="player-int">0</span></p>
-              <div class="attribute-controls" data-attribute="intelligence">
+              <p>Arcane: <span id="player-arc">0</span></p>
+              <div class="attribute-controls" data-attribute="arcane">
                 <button class="btn-attribute increase">+</button>
                 <button class="btn-attribute decrease">-</button>
               </div>
             </div>
             <hr class="animated">
             <h4>MODIFIERS</h4>
-            <p>Critical: <span id="player-crit">0% of 1.5</span></p>
-            <p>Defense: -<span id="player-def">0</span>% of incoming damage</p>
+            <p>Critical: <span id="player-crit">0% (1.5)</span></p>
+            <p>Defense: <span id="player-def">0</span>%</p>
             <p>Attack: <span id="player-att">0</span></p>
             <p>Accuracy: <span id="player-acc">0</span>%</p>
             <p>Charisma: <span id="player-cha">0</span></p>
@@ -90,11 +91,11 @@
           </div>
           <div id="inventory" class="hidden" data-pages="side">
             <h3>INVENTORY</h3>
-            <div id="inventory-container">You currently have no items.</div>
+            <div id="inventory-container" class="side-container">You currently have no items.</div>
           </div>
           <div id="log" class="hidden" data-pages="side">
             <h3>LOG</h3>
-            <div id="log-container"></div>
+            <div id="log-container" class="side-container"></div>
           </div>
           <div id="abilities" class="hidden" data-pages="side">
             <h3>ABILITIES</h3>

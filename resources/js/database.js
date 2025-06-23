@@ -176,9 +176,9 @@ export const events = [
         loot: [
             {id: "item-small_hp_potion", quantity: 1, chance: 80},
             {id: "item-small_hp_potion", quantity: 1, chance: 20},
-            {id: "item-gold_coin", quantity: 1, chance: 100},
-            {id: "item-gold_coin", quantity: 5, chance: 85},
-            {id: "item-gold_coin", quantity: 3, chance: 65}
+            {id: "currency-gold_coin", quantity: 1, chance: 100},
+            {id: "currency-gold_coin", quantity: 5, chance: 85},
+            {id: "currency-gold_coin", quantity: 3, chance: 65}
         ]
     },
     {
@@ -204,7 +204,7 @@ export const events = [
 
 export const items = [
     {
-        id: 'item-gold_coin',
+        id: 'currency-gold_coin',
         name: 'Gold Coin',
         description: "The dungeon's currency",
         type: 'Miscellaneous',
@@ -215,7 +215,7 @@ export const items = [
         name: 'Lesser Healing Potion',
         description: 'Restores 15% of your maximum HP',
         price: 15,
-        currency: 'item-gold_coin',
+        currency: 'currency-gold_coin',
         type: 'Consumables',
         subType: 'Restores HP',
         effect: { value: 0.15 }
@@ -225,7 +225,7 @@ export const items = [
         name: 'Greater Healing Potion',
         description: 'Restores 50% of your maximum HP',
         price: 40,
-        currency: 'item-gold_coin',
+        currency: 'currency-gold_coin',
         type: 'Consumables',
         subType: 'Restores HP',
         effect: { value: 0.50 }
@@ -235,11 +235,41 @@ export const items = [
         name: 'Cure Poison Potion',
         description: 'Removes the "Poisoned" effect',
         price: 35,
-        currency: 'item-gold_coin',
+        currency: 'currency-gold_coin',
         type: 'Consumables',
         subType: 'Purifiers',
         effect: { type: "EFFECT", stat: "effect-poisoned", value: 1 }
-    }
+    },
+    {
+        id: 'weapon-sword',
+        name: 'Sword',
+        type: 'Equipments',
+        subType: 'Weapons',
+        description: 'An ordinary sword',
+        effects: [
+            { stat: 'strength', value: 2 }
+        ]
+    },
+    {
+        id: 'weapon-rapier',
+        name: 'Rapier',
+        type: 'Equipments',
+        subType: 'Weapons',
+        description: 'An ordinary rapier',
+        effects: [
+            { stat: 'strength', value: 2 }
+        ]
+    },
+    {
+        id: 'armor-light',
+        name: 'Light Armor',
+        type: 'Equipments',
+        subType: 'Armors',
+        description: 'An ordinary light armor',
+        effects: [
+            { stat: 'defense', value: 3 }
+        ]
+    },
 ];
 
 export const recipes = [];
