@@ -9,11 +9,12 @@ import { clearAllEvents } from './event.js';
 export class Player {
     constructor() {
         this.title = 'Newborn';
+        this.attributePoints = 1;
         // ATTRIBUTES
-        this.constituition = 1;
-        this.strength = 5;
-        this.dexterity = 5;
-        this.intelligence = 5;
+        this.constitution = 1;
+        this.strength = 1;
+        this.dexterity = 1;
+        this.intelligence = 1;
         // MODIFIERS
         this.defense = 2;
         this.luck = 5;
@@ -84,6 +85,7 @@ export class Player {
             cha: document.getElementById('player-cha'),
             luck: document.getElementById('player-luck'),
             crit: document.getElementById('player-crit'),
+            ap: document.getElementById('player-ap'),
             playtime: document.getElementById('current-playtime'),
             distance: document.getElementById('current-distance'),
             kills: document.getElementById('current-total-kills'),
@@ -105,7 +107,6 @@ export class Player {
         this.kills = {};
         this.abilities = {};
         this.activeEffects = {};
-        this.effectTimers = {};
         this.currentTargetingAbility = null;
         this.unlockedRecipes = {};
         this.startPlaytime();
@@ -113,7 +114,7 @@ export class Player {
     }
 
     calculateMaxHp() {
-        return 100 + 20 * (this.constituition - 1);
+        return 100 + 20 * (this.constitution - 1);
     }
 
     calculateXpToNextLevel() {
@@ -144,20 +145,63 @@ export class Player {
 
     levelUp() {
         this.level++;
+        this.attributePoints++;
+        this.elements.ap.textContent = this.attributePoints;
         this.xpToNextLevel = this.calculateXpToNextLevel();
         this.heal(this.maxHp);
         showDialog(`Level up! Now you're level ${this.level}!`);
     }
 
-    applyModifier(type, amount) {
+    applyModifier(type, amount = 1) {
+        // if type null get random attribute
         switch (type) {
             case 'constitution': {
-                this.constituition += amount;
+                this.constitution += amount;
+                this.elements.con.textContent = this.constitution;
                 this.maxHp = this.calculateMaxHp();
                 this.hpBar.setMax(this.maxHp);
                 break;
             }
+            case 'strength':{
+                this.strength += amount;
+                this.elements.str.textContent = this.strength;
+                break;
+            }
+            case 'dexterity':{
+                this.dexterity += amount;
+                this.elements.dex.textContent = this.dexterity;
+                break;
+            }
+            case 'intelligence':{
+                this.intelligence += amount;
+                this.elements.int.textContent = this.intelligence;
+                break;
+            }
+            default: return false;
         }
+    }
+
+    increaseAttribute(attribute) {
+        if (this.attributePoints <= 0) return false;
+        this.applyModifier(attribute, 1);
+        this.attributePoints -= 1;
+        this.elements.ap.textContent = this.attributePoints;
+        return true;
+    }
+
+    decreaseAttribute(attribute) {
+        if (this[attribute] <= 1) return false;
+        this.applyModifier(attribute, -1);
+        this.attributePoints += 1;
+        this.elements.ap.textContent = this.attributePoints;
+        return true;
+    }
+
+    showAttributesControls() {
+        const showControls = this.attributePoints > 0;
+        document.querySelectorAll('.attribute-controls').forEach(control => {
+            control.classList.toggle('visible', showControls);
+        });
     }
 
     async startAttackCooldown() {
@@ -240,7 +284,7 @@ export class Player {
 
     updateStats() {
         this.elements.title.textContent = this.title || 'Player';
-        this.elements.con.textContent = this.constituition || 0;
+        this.elements.con.textContent = this.constitution || 0;
         this.elements.str.textContent = this.strength || 0;
         this.elements.dex.textContent = this.dexterity || 0;
         this.elements.int.textContent = this.intelligence || 0;
@@ -255,6 +299,7 @@ export class Player {
         this.elements.kills.textContent = this.getTotalKills() || 0;
         this.elements.playtime.textContent = this.formatPlaytime() || '00:00:00';
         this.elements.distance.textContent = this.distance || 0;
+        this.elements.ap.textContent = this.attributePoints;
         this.updateInventoryUI();
         this.updateAbilitiesUI();
         this.updateEffectsUI();
@@ -276,6 +321,12 @@ export class Player {
         return [hours, minutes, seconds]
             .map(v => String(v).padStart(2, '0'))
             .join(':');
+    }
+
+    resetBattle(){
+        Object.values(this.abilities).forEach(ab => {
+            ab.usedThisBattle = false;
+        });
     }
 
     hasAbility(id) {
@@ -356,31 +407,46 @@ export class Player {
         const ability = this.abilities[abilityId];
         if (!ability || ability.isPassive) return false;
         if (!this.canUseAbility(ability)) return false;
-        if (ability.cooldown) {
-            ability.remainingCooldown = Date.now() + ability.cooldown;
-            this.startAbilityCooldown(ability.id);
-        }
         switch(ability.target) {
             case "SELF":{
-                this.addEffect(ability.effectId, 'player');
+                if (ability.effectId) {
+                    if (!this.addEffect(ability.effectId, 'player')) return false;
+                }
                 showDialog(`Used ${ability.name} on yourself!`);
                 break;
             }
             case "ENEMY":{
                 if (enemies.length === 1) {
-                    enemies[0].addEffect(ability.effectId, 'player');
-                    showDialog(`Used ${ability.name} on ${enemies[0].name}!`);
+                    if(!this.applyAbilityToEnemy(abilityId, enemies[0])) return false;
                 } else {
                     this.startTargetSelection(abilityId);
                 }
                 break;
             }
             case "ALL_ENEMIES":{
-                enemies.forEach(enemy => enemy.addEffect(ability.effectId, 'player'));
-                showDialog(`Used ${ability.name} on all enemies!`);
+                if (ability.effectId){
+                    const canApplyToAny = enemies.some(enemy => !enemy.hasEffect(ability.effectId));
+                    if (!canApplyToAny) {
+                        showDialog(`All enemies are already affected by this effect!`, {doLog: false});
+                        return false;
+                    }
+                    let affectedCount = 0;
+                    enemies.forEach(enemy => {
+                        if (!enemy.hasEffect(ability.effectId)) {
+                            enemy.addEffect(ability.effectId, 'player');
+                            affectedCount++;
+                        }
+                    });
+                    showDialog(`Used ${ability.name} on ${affectedCount} enem${affectedCount !== 1 ? 'ies' : 'y'}!`);
+                }
                 break;
             }
             default: return false;
+        }
+        ability.usedThisBattle = true;
+        if (ability.cooldown) {
+            ability.remainingCooldown = Date.now() + ability.cooldown;
+            this.startAbilityCooldown(ability.id);
         }
         return true;
     }
@@ -388,9 +454,15 @@ export class Player {
     applyAbilityToEnemy(abilityId, enemy) {
         const ability = this.abilities[abilityId];
         if (!ability || !ability.effectId) return;
-        
-        enemy.addEffect(ability.effectId, 'player');
+        if (ability.effectId){
+            if (enemy.hasEffect(ability.effectId)) {
+                showDialog(`${enemy.name} is already affected by this effect.`, {doLog: false});
+                return false;
+            }
+            enemy.addEffect(ability.effectId, 'player');
+        }
         showDialog(`Used ${ability.name} on ${enemy.name}!`);
+        return true;
     }
 
     startTargetSelection(abilityId) {
@@ -540,7 +612,10 @@ export class Player {
             logError(new Error(`Effect ${effectId} not found`));
             return false;
         }
-        //if (!effectTemplate.stackable && this.activeEffects[effectId]) {}
+        if (this.hasEffect(effectId)) {
+            showDialog(`You are already affected by ${effectTemplate.name}.`, {doLog: false});
+            return false;
+        }
         this.removeEffect(effectId);
         const effect = {
             ...effectTemplate,
@@ -821,6 +896,21 @@ function playerDebug(){
     db.items.forEach(item => {
         player.addItem(item.id);
     });
+    //player.showAttributesControls();
 }
 
 export { player };
+
+document.querySelectorAll('.btn-attribute.increase').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const attribute = btn.closest('.attribute-controls').dataset.attribute;
+        player.increaseAttribute(attribute);
+    });
+});
+
+document.querySelectorAll('.btn-attribute.decrease').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const attribute = btn.closest('.attribute-controls').dataset.attribute;
+        player.decreaseAttribute(attribute);
+    });
+});

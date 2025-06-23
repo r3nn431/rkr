@@ -528,7 +528,6 @@ export class Enemy {
             logError(new Error(`Effect ${effectId} not found`));
             return false;
         }
-        //if (!effectTemplate.stackable && this.activeEffects[effectId]) {}
         this.removeEffect(effectId);
         const effect = {
             ...effectTemplate,
@@ -697,6 +696,9 @@ export function callEnemy(id){
     const enemyInstance = new Enemy(selected);
     if (Math.random() < 0.2) {
         setEnemyVariation(enemyInstance);
+    }
+    if(enemies.length === 1) {
+        player.resetBattle();
     }
     return enemyInstance;
 }

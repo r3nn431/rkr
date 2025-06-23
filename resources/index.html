@@ -45,11 +45,35 @@
             <div id="player-xp-container"></div>
             <div id="player-attackcd-container"></div>
             <hr class="animated">
-            <h4>MAIN ATTRIBUTES</h4>
-            <p class="tooltip" data-tooltip="Each point increases maximum health by 20 points">Constituition: <span id="player-con">0</span></p>
-            <p class="tooltip" data-tooltip="Each point increases your attack damage by 2 points">Strength: <span id="player-str">0</span></p>
-            <p>Dexterity: <span id="player-dex">0</span></p>
-            <p>Intelligence: <span id="player-int">0</span></p>
+            <h4>MAIN ATTRIBUTES <span>(AP: <span id="player-ap">0</span>)</span></h4>
+            <div class="attribute-row">
+              <p class="tooltip" data-tooltip="Each point increases maximum health by 20 points">Constitution: <span id="player-con">0</span></p>
+              <div class="attribute-controls" data-attribute="constitution">
+                <button class="btn-attribute increase">+</button>
+                <button class="btn-attribute decrease">-</button>
+              </div>
+            </div>
+            <div class="attribute-row">
+              <p class="tooltip" data-tooltip="Each point increases your attack damage by 2 points">Strength: <span id="player-str">0</span></p>
+              <div class="attribute-controls" data-attribute="strength">
+                <button class="btn-attribute increase">+</button>
+                <button class="btn-attribute decrease">-</button>
+              </div>
+            </div>
+            <div class="attribute-row">
+              <p>Dexterity: <span id="player-dex">0</span></p>
+              <div class="attribute-controls" data-attribute="dexterity">
+                <button class="btn-attribute increase">+</button>
+                <button class="btn-attribute decrease">-</button>
+              </div>
+            </div>
+            <div class="attribute-row">
+              <p>Intelligence: <span id="player-int">0</span></p>
+              <div class="attribute-controls" data-attribute="intelligence">
+                <button class="btn-attribute increase">+</button>
+                <button class="btn-attribute decrease">-</button>
+              </div>
+            </div>
             <hr class="animated">
             <h4>MODIFIERS</h4>
             <p>Critical: <span id="player-crit">0% of 1.5</span></p>

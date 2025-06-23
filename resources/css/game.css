@@ -347,11 +347,13 @@ strong {
 p {
     font-family: var(--font-PTMono);
     font-size: 1.1rem;
-    line-height: 1.6;
-    margin: 0 0 1em 0;
     color: var(--text-primary);
     text-align: justify;
     hyphens: auto;
+}
+
+#help {
+    line-height: 1.8;
 }
 
 .lead {
@@ -1376,4 +1378,45 @@ blockquote::after {
 .target-selection-cancel {
     background: rgba(139, 0, 0, 0.3);
     border: 1px solid var(--error-red);
+}
+
+/* ATTRIBUTES POINTS */
+.attribute-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    height: 24px;
+}
+
+.attribute-controls {
+    display: none;
+    gap: 5px;
+}
+
+.attribute-controls.visible {
+    display: flex;
+}
+
+.btn-attribute {
+    all: unset;
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--primary-color);
+}
+
+.btn-attribute:hover {
+    background: rgba(212, 160, 23, 0.2);
+}
+
+.btn-attribute:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
 }

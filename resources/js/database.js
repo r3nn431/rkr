@@ -67,25 +67,6 @@ export const enemies = [
 
 export const abilities = [
     {
-        id: "passive-test",
-        name: "Iron Skin",
-        description: "Increases constitution by 2",
-        rarity: 3,
-        isSoulbound: false,
-        isPassive: true,
-        isCurse: false,
-        unlockCondition: {
-            method: "KILL",
-            id: null,
-            type: null,
-            amount: 1
-        },
-        source: "Obtained from killing a rat",
-        effects: [
-            { stat: "CONSTITUTION", value: 2 }
-        ]
-    },
-    {
         id: "passive-killall_50",
         name: "Bathed in blood",
         description: "You're getting the hang of this so it's easier to land attacks now",
@@ -105,17 +86,17 @@ export const abilities = [
         ]
     },
     {
-        id: "power-self_damage",
-        name: "Curse of Return",
-        description: "Applies the 'Damage Return' condition to the target",
+        id: "power-protect",
+        name: "Protect",
+        description: "Applies the 'Protected' condition to the target",
         rarity: 4,
         isPassive: false,
-        cooldown: 30000,
+        cooldown: 10000,
         costValue: 20,
         costType: "MP",
-        target: "ENEMY",
-        usage: "COMBAT",
-        effectId: "effect-self_damage",
+        target: "SELF",
+        usage: "ANY",
+        effectId: "effect-protected",
         useCondition: []
     },
     {
@@ -124,7 +105,7 @@ export const abilities = [
         description: "Applies the 'Poisoned' condition to the target",
         rarity: 3,
         isPassive: false,
-        cooldown: 20000,
+        cooldown: 5000,
         costValue: 15,
         costType: "MP",
         target: "ENEMY",
@@ -145,20 +126,29 @@ export const effects = [
         value: 2,
         icon: "icon-poison-bottle",
         isDebuff: true,
-        stackable: false,
         target: "ANY"
     },
     {
-        id: "effect-self_damage",
-        name: "Damage Return",
+        id: "effect-reverse_damage",
+        name: "Reversed",
         description: "Target's next 3 attacks revert to itself",
         usage: "ON_ATTACK",
         hasDuration: false,
         uses: 3,
-        multiplier: 1.0, // ?
         icon: "icon-divert",
         isDebuff: true,
-        stackable: false,
+        target: "ANY"
+    },
+    {
+        id: "effect-protected",
+        name: "Protected",
+        description: "Reduces damage taken by 40%",
+        usage: "ON_HIT",
+        duration: 10000,
+        hasDuration: true,
+        value: 0.4,
+        icon: "icon-shield",
+        isDebuff: false,
         target: "ANY"
     }
 ];
@@ -222,7 +212,7 @@ export const items = [
     },
     {
         id: 'item-small_hp_potion',
-        name: 'Small Health Potion',
+        name: 'Lesser Healing Potion',
         description: 'Restores 15% of your maximum HP',
         price: 15,
         currency: 'item-gold_coin',
@@ -232,7 +222,7 @@ export const items = [
     },
     {
         id: 'item-medium_hp_potion',
-        name: 'Grand Health Potion',
+        name: 'Greater Healing Potion',
         description: 'Restores 50% of your maximum HP',
         price: 40,
         currency: 'item-gold_coin',
@@ -242,7 +232,7 @@ export const items = [
     },
     {
         id: 'item-antidote',
-        name: 'Antidote',
+        name: 'Cure Poison Potion',
         description: 'Removes the "Poisoned" effect',
         price: 35,
         currency: 'item-gold_coin',
@@ -251,3 +241,5 @@ export const items = [
         effect: { type: "EFFECT", stat: "effect-poisoned", value: 1 }
     }
 ];
+
+export const recipes = [];

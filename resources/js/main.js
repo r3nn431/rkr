@@ -184,7 +184,6 @@ document.getElementById('btn-exit-game').addEventListener('click', async () => {
             changePnl(document.getElementById('menu-container'), gamePnls);
             pnlMenu.classList.add('screen-on');
             setupMenu();
-            //await Neutralino.app.restartProcess();
         }
     });
 });
@@ -229,9 +228,22 @@ function attemptAdvance(){
     }
 }
 
+function getModifiedOutcome(){
+    const outcomes = JSON.parse(JSON.stringify(db.events));
+    // thief rarity 0 if already dead
+    return getWeightedRandom(outcomes);
+}
+
+function getModifiedEnemies(){
+    const outcomes = JSON.parse(JSON.stringify(db.enemies));
+    const eligibleEnemies = outcomes.filter(enemy => enemy.list === 'NORMAL');
+    return getWeightedRandom(eligibleEnemies);
+}
+
 function advance() {
     document.getElementById('btn-advance').textContent = 'ADVANCE';
     clearAllEvents();
+    player.resetBattle();
     document.getElementById('btn-advance').disabled = true;
     imgBackground.classList.remove('walk-effect-up', 'walk-effect-down');
     if(stepToggle) {
@@ -245,20 +257,15 @@ function advance() {
         player.distance += 1;
         player.elements.distance.textContent = player.distance;
 
-        const outcome = getWeightedRandom(db.events);
+        const outcome = getModifiedOutcome();
         if (!outcome) {
-            logError(new Error('No event found'));
+            logError(new Error('No outcome found'));
             return;
         }
         switch(outcome.id) {
             case 'enemy':{
                 showDialog('An enemy approaches!');
-                const eligibleEnemies = db.enemies.filter(enemy => enemy.list === 'NORMAL');
-                let selectedEnemy = getWeightedRandom(eligibleEnemies);
-                if (!selectedEnemy) {
-                    logError(new Error('No eligible enemies found'));
-                    return null;
-                }
+                let selectedEnemy = getModifiedEnemies();
                 callEnemy(selectedEnemy.id);
                 break;
             }
@@ -282,6 +289,10 @@ function advance() {
                         }
                     }, 500);
                 }
+                break;
+            }
+            case 'bee':{
+                // show event bee if queen bee is alive, if not call bee swarm
                 break;
             }
             default: {
