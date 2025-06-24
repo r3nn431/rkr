@@ -55,7 +55,7 @@ function attachTooltips() {
     }
     document.querySelectorAll('.tooltip').forEach(el => {
         el.addEventListener('mouseenter', () => {
-            sharedTooltip.textContent = el.getAttribute('data-tooltip');
+            sharedTooltip.innerHTML = el.getAttribute('data-tooltip');
             sharedTooltip.style.display = 'block';
             sharedTooltip.style.opacity = '1';
         });

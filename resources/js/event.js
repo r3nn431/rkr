@@ -385,7 +385,7 @@ export class Event {
 
     attackPlayer() {
         //this.attack = Math.floor(this.attack * (1 + (player.level - 1) * 0.15));
-        let damage = Math.max(1, this.attack - player.defense || 0);
+        let damage = Math.max(1, this.attack - player.getDefenseValue() || 0);
         gameContainer.classList.add('player-hit-shake');
         const hpContainer = document.getElementById('player-hp-container');
         const hitEffect = document.getElementById('player-hit-effect');

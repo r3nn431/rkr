@@ -45,7 +45,7 @@
             <div id="player-xp-container"></div>
             <div id="player-attackcd-container"></div>
             <div id="player-mp-container"></div>
-            <hr class="animated">
+            <hr class="hr-icon">
             <h4>MAIN ATTRIBUTES <span>(AP: <span id="player-ap">0</span>)</span></h4>
             <div class="attribute-row">
               <p class="tooltip" data-tooltip="Each point increases maximum health by 20 points">Constitution: <span id="player-con">0</span></p>
@@ -62,7 +62,7 @@
               </div>
             </div>
             <div class="attribute-row">
-              <p>Dexterity: <span id="player-dex">0</span></p>
+              <p class="tooltip" data-tooltip='<span>Dexterity: <br></span> Each point increases your'>Dexterity: <span id="player-dex">0</span></p>
               <div class="attribute-controls" data-attribute="dexterity">
                 <button class="btn-attribute increase">+</button>
                 <button class="btn-attribute decrease">-</button>
@@ -75,17 +75,19 @@
                 <button class="btn-attribute decrease">-</button>
               </div>
             </div>
-            <hr class="animated">
+            <hr class="hr-icon">
             <h4>MODIFIERS</h4>
             <p>Critical: <span id="player-crit">0% (1.5)</span></p>
-            <p>Defense: <span id="player-def">0</span>%</p>
             <p>Attack: <span id="player-att">0</span></p>
+            <p>Defense: <span id="player-def">0</span>%</p>
             <p>Accuracy: <span id="player-acc">0</span>%</p>
-            <p>Charisma: <span id="player-cha">0</span></p>
+            <p>Evasion: <span id="player-eva">0</span>%</p>
+            <p>Stealth: <span id="player-ste">0</span>%</p>
+            <hr class="hr-icon">
+            <h4>SKILLS</h4>
             <p>Alchemy: <span id="player-alc">0</span></p>
             <p>Craftsmanship: <span id="player-craft">0</span></p>
-            <p>Luck: <span id="player-luck">0</span></p>
-            <hr class="animated">
+            <hr class="hr-icon">
             <h4>EFFECTS</h4>
             <div id="effects-container"></div>
           </div>
@@ -99,7 +101,7 @@
           </div>
           <div id="abilities" class="hidden" data-pages="side">
             <h3>ABILITIES</h3>
-            <div id="abilities-container"></div>
+            <div id="abilities-container" class="side-container"></div>
           </div>
           <div id="settings" class="hidden" data-pages="side">
             <h3>SETTINGS</h3>
@@ -141,11 +143,11 @@
             <p>Any feedback, suggestion or bug report? <a class="link" href="https://github.com/r3nn431/RKR/issues" target="_blank">Submit an issue on GitHub</a> or send a email to <a href="mailto:pizzalab@googlegroups.com">pizzalab@googlegroups.com</a> put in the email subject [RKR] and the type of your contact (feedback, suggestion or bug). If it's a bug report please include the steps to reproduce the bug and attach the 'error.log' file.</p><br>
             <h4>How to play</h4>
             <p>The game doesn't have a real ending, but you can achieve something similar as you play.</p>
-            <hr class="animated">
+            <hr class="hr-elegant">
             <h4>About the development</h4>
             <p>This game came from a long development, longer than necessary. It all started with a game I made in Twine (interactive text) because I really wanted to make a simple RPG game but it still wasn't enough. That's when I started doing it in Java, but I had some problems because I was still learning. After a few more attempts with other languages ​​and platforms, the game finally came out using NeutralinoJS.</p>
             <p>I was heavily inspired by Kingsway when making this game, which I really advise everyone to play as it's a wonderful game. This game is not perfect and it's not a game that will get you addicted, but it's made with love, born from a hobby that I really enjoyed being able to do and finish.</p>
-            <hr class="animated">
+            <hr class="hr-elegant">
             <h4>Credits</h4>
           </div>
           <div id="files" class="hidden" data-pages="side">
@@ -166,10 +168,12 @@
           </div>
           <div id="statistics" class="hidden" data-pages="side">
             <h3>STATISTICS</h3>
-            <p>Started at: <span id="current-startdate">00/00/0000</span></p>
-            <p>Elapsed game time: <span id="current-playtime">00:00:00</span></p>
-            <p>Current distance: <span id="current-distance">0</span></p>
-            <p>Total kills: <span id="current-total-kills">0</span></p>
+            <div class="side-container">
+              <p>Started at: <span id="current-startdate">00/00/0000</span></p>
+              <p>Elapsed game time: <span id="current-playtime">00:00:00</span></p>
+              <p>Current distance: <span id="current-distance">0</span></p>
+              <p>Total kills: <span id="current-total-kills">0</span></p>
+            </div>
           </div>
         </div>
         <div id="main-game">
@@ -186,7 +190,7 @@
             <span class="material-icons">exit_to_app</span>
             <span>Exit</span>
           </button>
-          <hr class="animated">
+          <hr class="hr-icon">
           <button class="btns-icon" id="btn-settings">
             <span class="material-icons">settings</span>
             <span>Settings</span>
@@ -199,7 +203,7 @@
             <span class="material-icons">bookmark</span>
             <span>Save/Load</span>
           </button>
-          <hr class="animated">
+          <hr class="hr-icon">
           <button class="btns-icon" id="btn-character">
             <span class="material-icons">account_circle</span>
             <span>Character</span>

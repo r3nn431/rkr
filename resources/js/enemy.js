@@ -348,10 +348,7 @@ export class Enemy {
         if (this.disablePlayerEscape) {
             return false;
         }
-        const baseEscapeChance = 30;
-        const dexBonus = player.dexterity * 2;
-        const stealthPenalty = this.stealth;
-        const escapeChance = Math.min(90, Math.max(10, baseEscapeChance + dexBonus - stealthPenalty));
+        const escapeChance = Math.min(90, Math.max(10, 30 + player.getStealthValue() - this.stealth));
         const roll = Math.random() * 100;
         return roll <= escapeChance;
     }
@@ -360,7 +357,7 @@ export class Enemy {
         if (!player || !player.attackReady) return;
 
         const dodgeChance = Math.random() * 100;
-        if (dodgeChance < this.evasion) {
+        if (player.getAttributeValue('accuracy') < this.evasion) {
             showDialog(`${this.name} dodged your attack!`, { doLog: false });
             player.startAttackCooldown();
             this.element.classList.add('dodge-effect');
@@ -371,7 +368,7 @@ export class Enemy {
             return;
         }
 
-        let damage = Math.max(1, player.attack - this.defense || 0);
+        let damage = Math.max(1, player.getAttackValue() - this.defense || 0);
         let isCritical = false;
         const critChance = Math.max(0, (player.criticalChance || 0) - this.criticalResistance || 0);
         const rollCrit = Math.random() * 100;
@@ -459,8 +456,8 @@ export class Enemy {
     attackPlayer() {
         if (!this.isAlive()) return;
         const hitChance = Math.random() * 100;
-        if (hitChance > player.evasion) {
-            let damage = Math.max(1, this.attack - player.defense || 0);
+        if (this.accuracy > player.getEvasionValue()) {
+            let damage = Math.max(1, this.attack - player.getDefenseValue() || 0);
             let isCritical = false;
             const critChance = Math.max(0, (this.criticalChance || 0) - player.criticalResistance || 0);
             const rollCrit = Math.random() * 100;

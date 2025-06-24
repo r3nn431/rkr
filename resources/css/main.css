@@ -642,7 +642,15 @@ ol li::before {
     margin: 0 10px;
 }
 
-hr.elegant {
+hr {
+    border: none;
+    height: 1px;
+    background: var(--primary-color);
+    margin: 20px 0;
+    opacity: 0.5;
+}
+
+.hr-elegant {
     border: none;
     height: 1px;
     background: linear-gradient(to right, transparent, var(--primary-color), transparent);
@@ -650,16 +658,7 @@ hr.elegant {
     opacity: 0.7;
 }
 
-hr.rounded {
-    border: none;
-    height: 2px;
-    background: var(--primary-color);
-    border-radius: 2px;
-    box-shadow: 0 2px 4px rgba(187, 134, 252, 0.3);
-    margin: 24px 0;
-}
-
-hr.dotted {
+.hr-dotted {
     border: none;
     height: 1px;
     background: repeating-linear-gradient(
@@ -672,7 +671,7 @@ hr.dotted {
     margin: 20px 0;
 }
 
-hr.glow {
+.hr-glow {
     border: none;
     height: 1px;
     background: var(--primary-color);
@@ -681,7 +680,7 @@ hr.glow {
     position: relative;
 }
 
-hr.glow::after {
+.hr-glow::after {
     content: '';
     position: absolute;
     top: -2px;
@@ -692,7 +691,7 @@ hr.glow::after {
     filter: blur(4px);
 }
 
-hr.icon {
+.hr-icon {
     border: none;
     height: 1px;
     background: linear-gradient(to right, transparent, var(--text-secondary), transparent);
@@ -701,7 +700,7 @@ hr.icon {
     text-align: center;
 }
 
-hr.icon::after {
+.hr-icon::after {
     content: "✻";
     color: var(--primary-color);
     background: var(--surface-color);
@@ -711,45 +710,26 @@ hr.icon::after {
     font-size: 18px;
 }
 
-hr.double {
-    border: none;
-    height: 2px;
-    background: linear-gradient(
-        to right,
-        transparent,
-        var(--primary-color) 20%,
-        transparent 80%
-    );
-    margin: 24px 0;
-    position: relative;
+.hr-thick {
+    border: 0;
+    height: 3px;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="3" viewBox="0 0 100 3"><path d="M0,1.5 C20,2.5 30,0.5 50,1.5 C70,2.5 80,0.5 100,1.5" fill="none" stroke="%23a67c52" stroke-width="1.5"/></svg>');
+    background-repeat: repeat-x;
+    margin: 1.5rem 0;
 }
 
-hr.double::before {
-    content: '';
-    position: absolute;
-    top: 6px;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(
-        to right,
-        transparent,
-        var(--secondary-color) 20%,
-        transparent 80%
-    );
+.hr-chain {
+    border: 0;
+    height: 15px;
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="30" height="15" viewBox="0 0 30 15"><circle cx="7.5" cy="7.5" r="5" fill="none" stroke="%23775533" stroke-width="1.5"/><circle cx="22.5" cy="7.5" r="5" fill="none" stroke="%23775533" stroke-width="1.5"/><path d="M12.5,7.5 L17.5,7.5" stroke="%23775533" stroke-width="1.5"/></svg>') repeat-x center;
+    margin: 1.5rem 0;
 }
 
-hr.animated {
-    border: none;
-    height: 1px;
-    background: var(--primary-color);
-    margin: 20px 0;
-    opacity: 0.5;
-    transition: opacity 0.3s ease;
-}
-
-hr.animated:hover {
-    opacity: 1;
+.hr-scroll {
+    border: 0;
+    height: 15px;
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="15" viewBox="0 0 100 15"><path d="M0,7.5 C20,2 30,13 50,7.5 C70,2 80,13 100,7.5" fill="none" stroke="%23d4b483" stroke-width="1.5"/><path d="M0,7.5 C20,13 30,2 50,7.5 C70,13 80,2 100,7.5" fill="none" stroke="%23d4b483" stroke-width="1.5"/></svg>') repeat-x center;
+    margin: 1.5rem 0;
 }
 
 /* ========== LINK STYLES ========== */

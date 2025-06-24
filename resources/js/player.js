@@ -9,25 +9,81 @@ import { clearAllEvents } from './event.js';
 export class Player {
     constructor() {
         this.title = 'Newborn';
-        this.attributePoints = 0;
+        this.attributePoints = 1;
         // ATTRIBUTES
-        this.constitution = 1;
-        this.strength = 1;
-        this.dexterity = 1;
-        this.arcane = 1;
-        // MODIFIERS
-        this.defense = 2;
-        this.luck = 5;
-        this.accuracy = 90;
-        this.charisma = 1;
-        this.alchemy = 5;
-        this.craftsmanship = 5;
-        this.criticalChance = 15;
+        this.constitution = { 
+            value: 1,
+            maxValue: 100,
+            tempValue: 0
+        };
+        this.strength = { 
+            value: 1,
+            maxValue: 100,
+            tempValue: 0
+        };
+        this.dexterity = { 
+            value: 1,
+            maxValue: 100,
+            tempValue: 0
+        };
+        this.arcane = { 
+            value: 1,
+            maxValue: 100,
+            tempValue: 0
+        };
+        // CALCULATED STATS
+        this.defense = {
+            value: 0,
+            maxValue: 90,
+            tempValue: 0
+        }
+        this.attack = {
+            value: 0,
+            maxValue: 200,
+            tempValue: 0
+        }
+        this.evasion = {
+            value: 0,
+            maxValue: 90,
+            tempValue: 0
+        }
+        this.stealth = {
+            value: 0,
+            maxValue: 100,
+            tempValue: 0
+        }
+        // OTHERS
+        this.alchemy = {
+            value: 1,
+            maxValue: 10,
+            tempValue: 0,
+            xp: 0,
+            nextXp: 100,
+            level: 1,
+            maxLevel: 10
+        };
+        this.craftsmanship = {
+            value: 1,
+            maxValue: 10,
+            tempValue: 0,
+            xp: 0,
+            nextXp: 100,
+            level: 1,
+            maxLevel: 10
+        };
+        this.luck = {
+            value: 1,
+            maxValue: 50,
+            tempValue: 0
+        }
+        this.accuracy = {
+            value: 90,
+            maxValue: 100,
+            tempValue: 0
+        }
+        this.criticalChance = 5;
         this.criticalMultiplier = 1.5;
         this.criticalResistance = 0;
-        // CALCULATED STATS
-        this.evasion = 5;
-        this.attack = 10;
         this.attackSpeed = 3000;
         this.maxHp = this.calculateMaxHp();
         this.hp = this.maxHp;
@@ -81,18 +137,18 @@ export class Player {
         })
         this.elements = {
             title: document.getElementById('player-title'),
-            con: document.getElementById('player-con'),
-            str: document.getElementById('player-str'),
-            dex: document.getElementById('player-dex'),
-            arc: document.getElementById('player-arc'),
-            def: document.getElementById('player-def'),
-            att: document.getElementById('player-att'),
-            acc: document.getElementById('player-acc'),
-            alc: document.getElementById('player-alc'),
-            craft: document.getElementById('player-craft'),
-            cha: document.getElementById('player-cha'),
-            luck: document.getElementById('player-luck'),
+            constitution: document.getElementById('player-con'),
+            strength: document.getElementById('player-str'),
+            dexterity: document.getElementById('player-dex'),
+            arcane: document.getElementById('player-arc'),
+            defense: document.getElementById('player-def'),
+            attack: document.getElementById('player-att'),
+            accuracy: document.getElementById('player-acc'),
+            alchemy: document.getElementById('player-alc'),
+            craftsmanship: document.getElementById('player-craft'),
             crit: document.getElementById('player-crit'),
+            evasion: document.getElementById('player-eva'),
+            stealth: document.getElementById('player-ste'),
             ap: document.getElementById('player-ap'),
             playtime: document.getElementById('current-playtime'),
             distance: document.getElementById('current-distance'),
@@ -118,25 +174,25 @@ export class Player {
         this.effectsModifiers = {};
         this.currentTargetingAbility = null;
         this.unlockedRecipes = {};
-        this.startPlaytime();
         this.isDead = false;
+        this.startPlaytime();
     }
     
     //@title UTILITARY METHODS
     updateStats() {
         document.getElementById('current-startdate').textContent = formatDate(this.startDate, true);
         this.elements.title.textContent = this.title || 'Player';
-        this.elements.con.textContent = this.constitution || 0;
-        this.elements.str.textContent = this.strength || 0;
-        this.elements.dex.textContent = this.dexterity || 0;
-        this.elements.arc.textContent = this.arcane || 0;
-        this.elements.def.textContent = this.defense || 0;
-        this.elements.att.textContent = this.attack || 0;
-        this.elements.acc.textContent = this.accuracy || 0;
-        this.elements.cha.textContent = this.charisma || 0;
-        this.elements.alc.textContent = this.alchemy || 0;
-        this.elements.craft.textContent = this.craftsmanship || 0;
-        this.elements.luck.textContent = this.luck || 0;
+        this.elements.constitution.textContent = this.getAttributeValue('constitution') || 0;
+        this.elements.strength.textContent = this.getAttributeValue('strength') || 0;
+        this.elements.dexterity.textContent = this.getAttributeValue('dexterity') || 0;
+        this.elements.arcane.textContent = this.getAttributeValue('arcane') || 0;
+        this.elements.defense.textContent = this.getDefenseValue() || 0;
+        this.elements.attack.textContent = this.getAttackValue() || 0;
+        this.elements.evasion.textContent = this.getEvasionValue() || 0;
+        this.elements.stealth.textContent = this.getStealthValue() || 0;
+        this.elements.accuracy.textContent = this.getAttributeValue('accuracy') || 0;
+        this.elements.alchemy.textContent = `${this.getAttributeValue('alchemy')} (${this.alchemy.xp}/${this.alchemy.nextXp})` || 0;
+        this.elements.craftsmanship.textContent = `${this.getAttributeValue('craftsmanship')} (${this.craftsmanship.xp}/${this.craftsmanship.nextXp})` || 0;
         this.elements.crit.textContent = `${this.criticalChance}% (${this.criticalMultiplier})` || 0;
         this.elements.kills.textContent = this.getTotalKills() || 0;
         this.elements.playtime.textContent = this.formatPlaytime() || '00:00:00';
@@ -150,6 +206,11 @@ export class Player {
     startPlaytime() {
         this.playtime = 0;
         this.playtimeInterval = setInterval(() => {
+            if (this.isDead) {
+                clearInterval(this.playtimeInterval);
+                this.playtimeInterval = null;
+                return;
+            }
             this.playtime += 1000;
             this.elements.playtime.textContent = this.formatPlaytime();
         }, 1000);
@@ -182,12 +243,32 @@ export class Player {
     }
 
     //@title ATTRIBUTE CALCULATIONS
+    getAttributeValue(attrName) {
+        return Math.floor(this[attrName].value + this[attrName].tempValue, this[attrName].maxValue);
+    }
+
+    getDefenseValue(){
+        return Math.floor(0.5 * this.getAttributeValue('constitution') + this.getAttributeValue('defense'), this.defense.maxValue);
+    }
+
+    getAttackValue(){
+        return Math.floor(2 * this.getAttributeValue('strength') + this.getAttributeValue('attack') + 5, this.attack.maxValue);
+    }
+
+    getEvasionValue(){
+        return Math.floor(0.5 * this.getAttributeValue('dexterity') + 0.3 * this.getAttributeValue('luck') + this.getAttributeValue('evasion'), this.evasion.maxValue);
+    }
+
+    getStealthValue(){
+        return Math.floor(0.7 * this.getAttributeValue('dexterity') + 0.3 * this.getAttributeValue('luck') + this.getAttributeValue('stealth'), this.stealth.maxValue);
+    }
+
     calculateMaxHp() {
-        return 100 + 20 * (this.constitution - 1);
+        return Math.floor(100 + 20 * (this.getAttributeValue('constitution') - 1));
     }
 
     calculateMaxMp() {
-        return 10 + 2 * (this.arcane - 1);
+        return Math.floor(10 + 2 * (this.getAttributeValue('arcane') - 1));
     }
 
     calculateXpToNextLevel() {
@@ -195,6 +276,17 @@ export class Player {
     }
 
     //@title LEVELING
+    addSkillXp(name, amount) {
+        const skill = this[name];
+        skill.xp += amount;
+        while (skill.xp >= skill.nextXp && skill.level < skill.maxLevel) {
+            skill.xp -= skill.nextXp;
+            skill.level++;
+            skill.value++;
+            skill.nextXp = Math.floor(skill.nextXp * 1.2);
+        }
+    }
+
     addXp(amount) {
         this.xp += amount;
         while (this.xp >= this.xpToNextLevel) {
@@ -214,35 +306,59 @@ export class Player {
         showDialog(`Level up! Now you're level ${this.level}!`);
     }
 
-    applyModifier(type, amount = 1) {
+    applyModifier(attribute, amount = 1, isTemporary = false) {
         // if type null get random attribute
-        switch (type) {
+        if (isTemporary){
+            this[attribute].tempValue += amount;
+        } else {
+            this[attribute].value += amount;
+        }
+        this.elements[attribute].textContent = this.getAttributeValue(attribute);
+        switch (attribute) {
             case 'constitution': {
-                this.constitution += amount;
-                this.elements.con.textContent = this.constitution;
                 this.maxHp = this.calculateMaxHp();
                 this.hpBar.setMax(this.maxHp);
-                break;
             }
-            case 'strength':{
-                this.strength += amount;
-                this.elements.str.textContent = this.strength;
-                break;
-            }
-            case 'dexterity':{
-                this.dexterity += amount;
-                this.elements.dex.textContent = this.dexterity;
+            case 'defense': {
+                this.elements.defense.textContent = this.getDefenseValue();
                 break;
             }
             case 'arcane':{
-                this.arcane += amount;
-                this.elements.arc.textContent = this.arcane;
                 this.maxMp = this.calculateMaxMp();
                 this.mpBar.setMax(this.maxMp);
                 break;
             }
-            default: return false;
+            case 'strength':
+            case 'attack': {
+                this.elements.attack.textContent = this.getAttackValue();
+                break;
+            }
+            case 'dexterity': {
+                this.elements.evasion.textContent = this.getEvasionValue();
+                this.elements.stealth.textContent = this.getStealthValue();
+                break;
+            }
+            case 'evasion': {
+                this.elements.evasion.textContent = this.getEvasionValue();
+                break;
+            }
+            case 'stealth': {
+                this.elements.stealth.textContent = this.getStealthValue();
+                break;
+            }
+            case 'alchemy': {
+                this.elements.alchemy.textContent = `${this.getAttributeValue('alchemy')} (${this.alchemy.xp}/${this.alchemy.nextXp})`;
+                break;
+            }
+            case 'craftsmanship': {
+                this.elements.craftsmanship.textContent = `${this.getAttributeValue('craftsmanship')} (${this.craftsmanship.xp}/${this.craftsmanship.nextXp})`;
+                break;
+            }
         }
+        //this.elements.crit.textContent = `${this.criticalChance}% (${this.criticalMultiplier})` || 0;
+        if (this[attribute].tempValue > 0) this.elements[attribute].style.color = 'green';
+        else if (this[attribute].tempValue < 0) this.elements[attribute].style.color = 'red';
+        else this.elements[attribute].style.color = 'white';
     }
 
     increaseAttribute(attribute) {
@@ -254,7 +370,7 @@ export class Player {
     }
 
     decreaseAttribute(attribute) {
-        if (this[attribute] <= 1) return false;
+        if (this[attribute].value <= 1) return false;
         this.applyModifier(attribute, -1);
         this.attributePoints += 1;
         this.elements.ap.textContent = this.attributePoints;
@@ -981,7 +1097,7 @@ function playerDebug(){
     db.items.forEach(item => {
         player.addItem(item.id);
     });
-    //player.showAttributesControls();
+    player.showAttributesControls();
 }
 
 export { player };
