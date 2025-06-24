@@ -1,10 +1,12 @@
 // js/config.js
 import { player } from './player.js';
+import { logError } from './utils.js';
 
 export const CONFIG_PATH = 'data/config.json';
 
 export const audioBGM = document.createElement('audio');
 document.body.appendChild(audioBGM);
+const activeBGSAudios = {};
 
 const logContent = document.getElementById('log-container');
 const dialogBox = document.getElementById('dialogbox');
@@ -46,6 +48,40 @@ export function playSFX(name){
     audio.onended = function () {
         this.parentNode.removeChild(this);
     }
+}
+
+export function playBGS(name) {
+    if (activeBGSAudios[name] && !activeBGSAudios[name].paused) {
+        return;
+    }
+    if (activeBGSAudios[name] && activeBGSAudios[name].paused) {
+        activeBGSAudios[name].play()
+            .catch(error => {
+                logError(new Error(`Error playing ${name}: ${error.message}`));
+            });
+        return;
+    }
+    const audio = new Audio("/assets/bgs/"+name);
+    audio.loop = true;
+    audio.volume = config.volumeBGS / 100;
+    audio.play()
+        .then(() => {
+            activeBGSAudios[name] = audio;
+        })
+        .catch(error => {
+            logError(new Error(`Error playing ${name}: ${error.message}`));
+        });
+}
+
+export function stopBGS(name) {
+    if (activeBGSAudios[name]) {
+        activeBGSAudios[name].pause();
+        activeBGSAudios[name].currentTime = 0;
+    }
+}
+
+export function isBGSPlaying(name) {
+    return activeBGSAudios[name] && !activeBGSAudios[name].paused;
 }
 
 function addToLog(text){

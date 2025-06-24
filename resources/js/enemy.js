@@ -356,8 +356,9 @@ export class Enemy {
     handleAttack() {
         if (!player || !player.attackReady) return;
 
-        const dodgeChance = Math.random() * 100;
-        if (player.getAttributeValue('accuracy') < this.evasion) {
+        const hitChance = Math.max(5, Math.min(95, this.evasion - player.getAttributeValue('accuracy')));
+        const hitRoll = Math.random() * 100;
+        if (hitRoll < hitChance) {
             showDialog(`${this.name} dodged your attack!`, { doLog: false });
             player.startAttackCooldown();
             this.element.classList.add('dodge-effect');
@@ -368,7 +369,11 @@ export class Enemy {
             return;
         }
 
-        let damage = Math.max(1, player.getAttackValue() - this.defense || 0);
+        //let damage = Math.max(1, player.getAttackValue() - this.defense || 0);
+        let damage = player.getAttackValue();
+        const damageReduction = Math.min(0, this.defense / (this.defense + 100));
+        damage = Math.max(0, Math.floor(damage * (1 - damageReduction)));
+
         let isCritical = false;
         const critChance = Math.max(0, (player.criticalChance || 0) - this.criticalResistance || 0);
         const rollCrit = Math.random() * 100;
@@ -455,9 +460,15 @@ export class Enemy {
 
     attackPlayer() {
         if (!this.isAlive()) return;
-        const hitChance = Math.random() * 100;
-        if (this.accuracy > player.getEvasionValue()) {
-            let damage = Math.max(1, this.attack - player.getDefenseValue() || 0);
+        const hitChance = Math.max(5, Math.min(95, this.accuracy - player.getEvasionValue()));
+        const hitRoll = Math.random() * 100;
+        if (hitRoll < hitChance) {
+            //let damage = Math.max(1, this.attack - player.getDefenseValue() || 0);
+            let damage = this.attack;
+            const defense = player.getDefenseValue();
+            const damageReduction = Math.min(0, defense / (defense + 100));
+            damage = Math.max(0, Math.floor(damage * (1 - damageReduction)));
+
             let isCritical = false;
             const critChance = Math.max(0, (this.criticalChance || 0) - player.criticalResistance || 0);
             const rollCrit = Math.random() * 100;

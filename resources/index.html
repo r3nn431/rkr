@@ -38,141 +38,160 @@
       <div id="player-hit-effect"></div>
       <div id="game-ui">
         <div class="side-panel" id="left-panel">
-          <div id="character" data-pages="side">
-            <h3>CHARACTER</h3>
+          <div id="status-bars">
             <h2>The <span id="player-title">Player</span></h2>
             <div id="player-hp-container"></div>
             <div id="player-xp-container"></div>
             <div id="player-attackcd-container"></div>
             <div id="player-mp-container"></div>
-            <hr class="hr-icon">
-            <h4>MAIN ATTRIBUTES <span>(AP: <span id="player-ap">0</span>)</span></h4>
-            <div class="attribute-row">
-              <p class="tooltip" data-tooltip="Each point increases maximum health by 20 points">Constitution: <span id="player-con">0</span></p>
-              <div class="attribute-controls" data-attribute="constitution">
-                <button class="btn-attribute increase">+</button>
-                <button class="btn-attribute decrease">-</button>
-              </div>
-            </div>
-            <div class="attribute-row">
-              <p class="tooltip" data-tooltip="Each point increases your attack damage by 2 points">Strength: <span id="player-str">0</span></p>
-              <div class="attribute-controls" data-attribute="strength">
-                <button class="btn-attribute increase">+</button>
-                <button class="btn-attribute decrease">-</button>
-              </div>
-            </div>
-            <div class="attribute-row">
-              <p class="tooltip" data-tooltip='<span>Dexterity: <br></span> Each point increases your'>Dexterity: <span id="player-dex">0</span></p>
-              <div class="attribute-controls" data-attribute="dexterity">
-                <button class="btn-attribute increase">+</button>
-                <button class="btn-attribute decrease">-</button>
-              </div>
-            </div>
-            <div class="attribute-row">
-              <p>Arcane: <span id="player-arc">0</span></p>
-              <div class="attribute-controls" data-attribute="arcane">
-                <button class="btn-attribute increase">+</button>
-                <button class="btn-attribute decrease">-</button>
-              </div>
-            </div>
-            <hr class="hr-icon">
-            <h4>MODIFIERS</h4>
-            <p>Critical: <span id="player-crit">0% (1.5)</span></p>
-            <p>Attack: <span id="player-att">0</span></p>
-            <p>Defense: <span id="player-def">0</span>%</p>
-            <p>Accuracy: <span id="player-acc">0</span>%</p>
-            <p>Evasion: <span id="player-eva">0</span>%</p>
-            <p>Stealth: <span id="player-ste">0</span>%</p>
-            <hr class="hr-icon">
-            <h4>SKILLS</h4>
-            <p>Alchemy: <span id="player-alc">0</span></p>
-            <p>Craftsmanship: <span id="player-craft">0</span></p>
-            <hr class="hr-icon">
-            <h4>EFFECTS</h4>
-            <div id="effects-container"></div>
           </div>
-          <div id="inventory" class="hidden" data-pages="side">
-            <h3>INVENTORY</h3>
-            <div id="inventory-container" class="side-container">You currently have no items.</div>
-          </div>
-          <div id="log" class="hidden" data-pages="side">
-            <h3>LOG</h3>
-            <div id="log-container" class="side-container"></div>
-          </div>
-          <div id="abilities" class="hidden" data-pages="side">
-            <h3>ABILITIES</h3>
-            <div id="abilities-container" class="side-container"></div>
-          </div>
-          <div id="settings" class="hidden" data-pages="side">
-            <h3>SETTINGS</h3>
-            <div class="settings-content">
-              <div class="setting-group">
-                <h4>Audio Settings</h4>
-                <div class="setting-item">
-                  <label for="bgm-volume">BGM Volume</label>
-                  <input type="range" id="bgm-volume" min="0" max="100">
-                  <span id="bgm-volume-value">100%</span>
-                </div>
-                <div class="setting-item">
-                  <label for="sfx-volume">SFX Volume</label>
-                  <input type="range" id="sfx-volume" min="0" max="100">
-                  <span id="sfx-volume-value">100%</span>
+          <div id="side-content">
+            <div id="character" data-pages="side">
+              <h3>CHARACTER</h3>
+              <h4>MAIN ATTRIBUTES <span>(AP: <span id="player-ap">0</span>)</span></h4>
+              <div class="attribute-row">
+                <p class="tooltip" data-tooltip='
+                  <p class="tooltip-name">Constitution</p>
+                  <p class="tooltip-description">"Increases your resistance to damage and increases your maximum health"</p>
+                  <p class="tooltip-effect">+20 max HP; +1 defense</p>
+                '>Constitution: <span id="player-con">0</span></p>
+                <div class="attribute-controls" data-attribute="constitution">
+                  <button class="btn-attribute increase">+</button>
+                  <button class="btn-attribute decrease">-</button>
                 </div>
               </div>
-              <div class="setting-group">
-                <h4>Game Settings</h4>
-                <div class="setting-item">
-                  <label for="text-speed">Text Speed</label>
-                  <input type="range" id="text-speed" min="0" max="100">
-                  <span id="text-speed-value">30</span>
+              <div class="attribute-row">
+                <p class="tooltip" data-tooltip='
+                  <p class="tooltip-name">Strength</p>
+                  <p class="tooltip-description">"Increases the raw damage of your physical attacks"</p>
+                  <p class="tooltip-effect">+2 attack</p>
+                '>Strength: <span id="player-str">0</span></p>
+                <div class="attribute-controls" data-attribute="strength">
+                  <button class="btn-attribute increase">+</button>
+                  <button class="btn-attribute decrease">-</button>
                 </div>
-                <div class="setting-item">
-                  <label for="enemy-speed">Enemy Speed</label>
-                  <select id="enemy-speed">
-                      <option value="SLOW">Slow</option>
-                      <option value="NORMAL" selected>Normal</option>
-                      <option value="FAST">Fast</option>
-                      <option value="ULTRA_FAST">Ultra Fast</option>
-                  </select>
+              </div>
+              <div class="attribute-row">
+                <p class="tooltip" data-tooltip='
+                  <p class="tooltip-name">Dexterity</p>
+                  <p class="tooltip-description">"Improves your agility, increasing your chances of dodging and escaping battles"</p>
+                  <p class="tooltip-effect">+1 evasion; +1 stealth</p>
+                '>Dexterity: <span id="player-dex">0</span></p>
+                <div class="attribute-controls" data-attribute="dexterity">
+                  <button class="btn-attribute increase">+</button>
+                  <button class="btn-attribute decrease">-</button>
+                </div>
+              </div>
+              <div class="attribute-row">
+                <p class="tooltip" data-tooltip='
+                  <p class="tooltip-name">Arcane</p>
+                  <p class="tooltip-description">"Increases your ability to use powers"</p>
+                  <p class="tooltip-effect">+2 max MP</p>
+                '>Arcane: <span id="player-arc">0</span></p>
+                <div class="attribute-controls" data-attribute="arcane">
+                  <button class="btn-attribute increase">+</button>
+                  <button class="btn-attribute decrease">-</button>
+                </div>
+              </div>
+              <hr class="hr-icon">
+              <h4>MODIFIERS</h4>
+              <p class="tooltip" data-tooltip="The chance to land a critical strike and the multiplier of your attack value">Critical: <span id="player-crit">0% (1.5)</span></p>
+              <p class="tooltip" data-tooltip="The total value of your physical attack">Attack: <span id="player-att">0</span></p>
+              <p class="tooltip" data-tooltip="The percentage reduced from the total attack value received">Defense: <span id="player-def">0</span>%</p>
+              <p class="tooltip" data-tooltip="The percentage chance of hitting with a physical attack">Accuracy: <span id="player-acc">0</span>%</p>
+              <p class="tooltip" data-tooltip="The percentage chance to dodge an incoming attack">Evasion: <span id="player-eva">0</span>%</p>
+              <p class="tooltip" data-tooltip="The percentage chance of escaping a battle">Stealth: <span id="player-ste">0</span>%</p>
+              <hr class="hr-icon">
+              <h4>SKILLS</h4>
+              <p class="tooltip" data-tooltip="Your ability to make better consumables">Alchemy: <span id="player-alc">0</span></p>
+              <p class="tooltip" data-tooltip="Your ability to make better equipment">Craftsmanship: <span id="player-craft">0</span></p>
+              <hr class="hr-icon">
+              <h4>EFFECTS</h4>
+              <div id="effects-container"></div>
+            </div>
+            <div id="inventory" class="hidden" data-pages="side">
+              <h3>INVENTORY</h3>
+              <div id="inventory-container" class="side-container">You currently have no items.</div>
+            </div>
+            <div id="log" class="hidden" data-pages="side">
+              <h3>LOG</h3>
+              <div id="log-container" class="side-container"></div>
+            </div>
+            <div id="abilities" class="hidden" data-pages="side">
+              <h3>ABILITIES</h3>
+              <div id="abilities-container" class="side-container"></div>
+            </div>
+            <div id="settings" class="hidden" data-pages="side">
+              <h3>SETTINGS</h3>
+              <div class="settings-content">
+                <div class="setting-group">
+                  <h4>Audio Settings</h4>
+                  <div class="setting-item">
+                    <label for="bgm-volume">BGM Volume</label>
+                    <input type="range" id="bgm-volume" min="0" max="100">
+                    <span id="bgm-volume-value">100%</span>
+                  </div>
+                  <div class="setting-item">
+                    <label for="sfx-volume">SFX Volume</label>
+                    <input type="range" id="sfx-volume" min="0" max="100">
+                    <span id="sfx-volume-value">100%</span>
+                  </div>
+                </div>
+                <div class="setting-group">
+                  <h4>Game Settings</h4>
+                  <div class="setting-item">
+                    <label for="text-speed">Text Speed</label>
+                    <input type="range" id="text-speed" min="0" max="100">
+                    <span id="text-speed-value">30</span>
+                  </div>
+                  <div class="setting-item">
+                    <label for="enemy-speed">Enemy Speed</label>
+                    <select id="enemy-speed">
+                        <option value="SLOW">Slow</option>
+                        <option value="NORMAL" selected>Normal</option>
+                        <option value="FAST">Fast</option>
+                        <option value="ULTRA_FAST">Ultra Fast</option>
+                    </select>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-          <div id="help" class="hidden" data-pages="side">
-            <h3>HELP</h3>
-            <p>Any feedback, suggestion or bug report? <a class="link" href="https://github.com/r3nn431/RKR/issues" target="_blank">Submit an issue on GitHub</a> or send a email to <a href="mailto:pizzalab@googlegroups.com">pizzalab@googlegroups.com</a> put in the email subject [RKR] and the type of your contact (feedback, suggestion or bug). If it's a bug report please include the steps to reproduce the bug and attach the 'error.log' file.</p><br>
-            <h4>How to play</h4>
-            <p>The game doesn't have a real ending, but you can achieve something similar as you play.</p>
-            <hr class="hr-elegant">
-            <h4>About the development</h4>
-            <p>This game came from a long development, longer than necessary. It all started with a game I made in Twine (interactive text) because I really wanted to make a simple RPG game but it still wasn't enough. That's when I started doing it in Java, but I had some problems because I was still learning. After a few more attempts with other languages ​​and platforms, the game finally came out using NeutralinoJS.</p>
-            <p>I was heavily inspired by Kingsway when making this game, which I really advise everyone to play as it's a wonderful game. This game is not perfect and it's not a game that will get you addicted, but it's made with love, born from a hobby that I really enjoyed being able to do and finish.</p>
-            <hr class="hr-elegant">
-            <h4>Credits</h4>
-          </div>
-          <div id="files" class="hidden" data-pages="side">
-            <h3>SAVE/LOAD</h3>
-            <p id="files-info">Create a new game or load your previous save</p>
-            <button class="btns-icon" id="btn-slot-0">
-              <span class="material-icons">save</span>
-              <span>SLOT 0 - <span id="info-slot-0">EMPTY</span></span>
-            </button>
-            <button class="btns-icon" id="btn-slot-1">
-              <span class="material-icons">save</span>
-              <span>SLOT 1 - <span id="info-slot-1">EMPTY</span></span>
-            </button>
-            <button class="btns-icon" id="btn-slot-2">
-              <span class="material-icons">save</span>
-              <span>SLOT 2 - <span id="info-slot-2">EMPTY</span></span>
-            </button>
-          </div>
-          <div id="statistics" class="hidden" data-pages="side">
-            <h3>STATISTICS</h3>
-            <div class="side-container">
-              <p>Started at: <span id="current-startdate">00/00/0000</span></p>
-              <p>Elapsed game time: <span id="current-playtime">00:00:00</span></p>
-              <p>Current distance: <span id="current-distance">0</span></p>
-              <p>Total kills: <span id="current-total-kills">0</span></p>
+            <div id="help" class="hidden" data-pages="side">
+              <h3>HELP</h3>
+              <p>Any feedback, suggestion or bug report? <a class="link" href="https://github.com/r3nn431/RKR/issues" target="_blank">Submit an issue on GitHub</a> or send a email to <a href="mailto:pizzalab@googlegroups.com">pizzalab@googlegroups.com</a> put in the email subject [RKR] and the type of your contact (feedback, suggestion or bug). If it's a bug report please include the steps to reproduce the bug and attach the 'error.log' file.</p><br>
+              <h4>How to play</h4>
+              <p>The game doesn't have a real ending, but you can achieve something similar as you play.</p>
+              <hr class="hr-elegant">
+              <h4>About the development</h4>
+              <p>This game came from a long development, longer than necessary. It all started with a game I made in Twine (interactive text) because I really wanted to make a simple RPG game but it still wasn't enough. That's when I started doing it in Java, but I had some problems because I was still learning. After a few more attempts with other languages ​​and platforms, the game finally came out using NeutralinoJS.</p>
+              <p>I was heavily inspired by Kingsway when making this game, which I really advise everyone to play as it's a wonderful game. This game is not perfect and it's not a game that will get you addicted, but it's made with love, born from a hobby that I really enjoyed being able to do and finish.</p>
+              <hr class="hr-elegant">
+              <h4>Credits</h4>
+            </div>
+            <div id="files" class="hidden" data-pages="side">
+              <h3>SAVE/LOAD</h3>
+              <p id="files-info">Create a new game or load your previous save</p>
+              <button class="btns-icon" id="btn-slot-0">
+                <span class="material-icons">save</span>
+                <span>SLOT 0 - <span id="info-slot-0">EMPTY</span></span>
+              </button>
+              <button class="btns-icon" id="btn-slot-1">
+                <span class="material-icons">save</span>
+                <span>SLOT 1 - <span id="info-slot-1">EMPTY</span></span>
+              </button>
+              <button class="btns-icon" id="btn-slot-2">
+                <span class="material-icons">save</span>
+                <span>SLOT 2 - <span id="info-slot-2">EMPTY</span></span>
+              </button>
+            </div>
+            <div id="statistics" class="hidden" data-pages="side">
+              <h3>STATISTICS</h3>
+              <div class="side-container">
+                <p>Started at: <span id="current-startdate">00/00/0000</span></p>
+                <p>Elapsed game time: <span id="current-playtime">00:00:00</span></p>
+                <p>Current distance: <span id="current-distance">0</span></p>
+                <p>Total kills: <span id="current-total-kills">0</span></p>
+              </div>
             </div>
           </div>
         </div>

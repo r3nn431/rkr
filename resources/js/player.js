@@ -244,31 +244,31 @@ export class Player {
 
     //@title ATTRIBUTE CALCULATIONS
     getAttributeValue(attrName) {
-        return Math.floor(this[attrName].value + this[attrName].tempValue, this[attrName].maxValue);
+        return Math.min(Math.floor(this[attrName].value + this[attrName].tempValue), this[attrName].maxValue);
     }
 
     getDefenseValue(){
-        return Math.floor(0.5 * this.getAttributeValue('constitution') + this.getAttributeValue('defense'), this.defense.maxValue);
+        return Math.min(Math.floor(0.5 * this.getAttributeValue('constitution') + this.getAttributeValue('defense')), this.defense.maxValue);
     }
 
     getAttackValue(){
-        return Math.floor(2 * this.getAttributeValue('strength') + this.getAttributeValue('attack') + 5, this.attack.maxValue);
+        return Math.min(Math.floor(2 * this.getAttributeValue('strength') + this.getAttributeValue('attack') + 5), this.attack.maxValue);
     }
 
     getEvasionValue(){
-        return Math.floor(0.5 * this.getAttributeValue('dexterity') + 0.3 * this.getAttributeValue('luck') + this.getAttributeValue('evasion'), this.evasion.maxValue);
+        return Math.min(Math.floor(0.5 * this.getAttributeValue('dexterity') + 0.3 * this.getAttributeValue('luck') + this.getAttributeValue('evasion')), this.evasion.maxValue);
     }
 
     getStealthValue(){
-        return Math.floor(0.7 * this.getAttributeValue('dexterity') + 0.3 * this.getAttributeValue('luck') + this.getAttributeValue('stealth'), this.stealth.maxValue);
+        return Math.min(Math.floor(0.7 * this.getAttributeValue('dexterity') + 0.3 * this.getAttributeValue('luck') + this.getAttributeValue('stealth')), this.stealth.maxValue);
     }
 
     calculateMaxHp() {
-        return Math.floor(100 + 20 * (this.getAttributeValue('constitution') - 1));
+        return Math.min(Math.floor(100 + 20 * (this.getAttributeValue('constitution') - 1)), 1000);
     }
 
     calculateMaxMp() {
-        return Math.floor(10 + 2 * (this.getAttributeValue('arcane') - 1));
+        return Math.min(Math.floor(10 + 2 * (this.getAttributeValue('arcane') - 1)), 500);
     }
 
     calculateXpToNextLevel() {
@@ -363,6 +363,7 @@ export class Player {
 
     increaseAttribute(attribute) {
         if (this.attributePoints <= 0) return false;
+        if (this[attribute].value >= this[attribute].maxValue) return false;
         this.applyModifier(attribute, 1);
         this.attributePoints -= 1;
         this.elements.ap.textContent = this.attributePoints;
@@ -728,6 +729,11 @@ export class Player {
                     );
                 });
                 metadataElements.push(`</div>`);
+            }
+            if (template.source) {
+                metadataElements.push(
+                    `<div class="ability-meta"><span class="meta-label">Source:</span>${template.source}</div>`
+                );
             }
         }
         let effectInfo = '';

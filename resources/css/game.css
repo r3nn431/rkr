@@ -521,7 +521,7 @@ blockquote::after {
 }
 
 .side-container {
-    max-height: 85vh;
+    max-height: 66vh;
     overflow-y: auto;
     margin-top: 10px;
     border: var(--border);
@@ -535,6 +535,36 @@ blockquote::after {
 
 .side-container::-webkit-scrollbar-thumb {
     background-color: var(--accent-color);
+}
+
+#left-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+#status-bars {
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    border-bottom: var(--border);
+}
+
+#status-bars h2 {
+    margin-top: 3px;
+}
+
+#side-content {
+    flex: 1;
+    overflow-y: auto;
+}
+
+#status-bars .progress-bar-container {
+    margin: 5px 0;
+    height: 20px;
+}
+
+#status-bars .progress-bar-text {
+    font-size: 11px;
 }
 
 #main-game {

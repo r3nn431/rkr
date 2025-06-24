@@ -1,5 +1,6 @@
 // js/database.js
 
+//@title ENEMIES
 export const enemies = [
     {
         id: "enemy-rat",
@@ -65,6 +66,7 @@ export const enemies = [
     }
 ];
 
+//@title ABILITIES
 export const abilities = [
     {
         id: "passive-killall_50",
@@ -115,6 +117,7 @@ export const abilities = [
     }
 ];
 
+//@title EFFECTS
 export const effects = [
     {
         id: "effect-poisoned",
@@ -153,6 +156,7 @@ export const effects = [
     }
 ];
 
+//@title EVENTS
 export const events = [
     {
         id: "chest",
@@ -202,6 +206,7 @@ export const events = [
     }
 ]
 
+//@title ITEMS
 export const items = [
     {
         id: 'currency-gold_coin',
@@ -272,4 +277,5 @@ export const items = [
     },
 ];
 
+//@title RECIPES
 export const recipes = [];
