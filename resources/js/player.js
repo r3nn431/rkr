@@ -516,7 +516,7 @@ export class Player {
         };
         this.applyAbilityEffects(id);
         this.updateAbilitiesUI();
-        showToast(`New ${template.isPassive ? 'passive' : 'power'} added!`, `${template.isPassive || template.isCurse ? 'debuff' : 'buff'}`, {targetElement: document.getElementById('btn-abilities')});
+        showToast(`New ${template.isPassive ? 'passive' : 'power'} added!`, `${template.isPassive && template.isCurse ? 'debuff' : 'buff'}`, {targetElement: document.getElementById('btn-abilities')});
         return true;
     }
     
