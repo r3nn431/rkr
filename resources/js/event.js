@@ -47,6 +47,7 @@ export class Event {
         this.actionBtn.addEventListener('click', () => this.handleAction());
     }
 
+    //@title MOVEMENT
     setupLocation() {
         const rect = gameContainer.getBoundingClientRect();
         this.maxX = rect.width - this.element.offsetWidth;
@@ -309,17 +310,42 @@ export class Event {
         document.removeEventListener('touchend', this.endDrag);
     }
 
+    //@title UTILS
     getTemplate() {
         return db.events.find(e => e.id === this.templateId);
+    }
+
+    destroy() {
+        cancelAnimationFrame(this.animationFrame);
+        if (this.moveType === 'FIXED') {
+            this.element.removeEventListener('mousedown', this.startDrag);
+            this.element.removeEventListener('touchstart', this.startDrag);
+        }
+        this.element?.parentNode?.removeChild(this.element);
+        const index = events.indexOf(this);
+        if (index !== -1) {
+            events.splice(index, 1);
+        }
+        this.element = null;
+        if (!events.some(e => e.templateId === 'trap')) {
+            document.getElementById('btn-advance').disabled = false;
+        }
     }
     
     dropLoot() {
         if (!this.loot || this.loot.length === 0) return;
         const itemMap = {};
+        const luckBonus = player.getAttributeValue('luck');
         this.loot.forEach(lootItem => {
-            if (Math.random() * 100 <= lootItem.chance) {
+            const effectiveChance = Math.min(lootItem.chance + Math.min(luckBonus, 30), 95);
+            if (Math.random() * 100 <= effectiveChance) {
                 const itemId = lootItem.id;
-                const quantity = lootItem.quantity || 1;
+                const baseQuantity = lootItem.quantity || 1;
+                let extraQuantity = 0;
+                if (Math.random() * 100 < (luckBonus * 0.5)) {
+                    extraQuantity = 1;
+                }
+                const quantity = baseQuantity + extraQuantity;
                 if (itemMap[itemId]) {
                     itemMap[itemId].quantity += quantity;
                 } else {
@@ -345,6 +371,7 @@ export class Event {
         }
     }
 
+    //@title ACTIONS
     handleAction() {
         this.destroy();
         switch(this.templateId) {
@@ -399,25 +426,9 @@ export class Event {
         player.takeDamage(this.attack, this);
         //playSFX('hitPlayer.wav');
     }
-
-    destroy() {
-        cancelAnimationFrame(this.animationFrame);
-        if (this.moveType === 'FIXED') {
-            this.element.removeEventListener('mousedown', this.startDrag);
-            this.element.removeEventListener('touchstart', this.startDrag);
-        }
-        this.element?.parentNode?.removeChild(this.element);
-        const index = events.indexOf(this);
-        if (index !== -1) {
-            events.splice(index, 1);
-        }
-        this.element = null;
-        if (!events.some(e => e.templateId === 'trap')) {
-            document.getElementById('btn-advance').disabled = false;
-        }
-    }
 }
 
+//@title OUTSIDE CLASS FUNCTIONS
 export function clearAllEvents() {
     events.forEach(event => event.destroy());
     events = [];

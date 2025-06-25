@@ -145,6 +145,7 @@ export class Enemy {
         enemies.push(this);
     }
 
+    //@title MOVEMENT
     setupLocation() {
         const rect = gameContainer.getBoundingClientRect();
         this.maxX = rect.width - this.element.offsetWidth;
@@ -327,6 +328,7 @@ export class Enemy {
         document.removeEventListener('touchend', this.endDrag);
     }
 
+    //@title UTILS
     getTemplate() {
         return db.enemies.find(e => e.id === this.templateId);
     }
@@ -353,6 +355,18 @@ export class Enemy {
         return roll <= escapeChance;
     }
 
+    attemptEscape() {
+        if (!this.canEscape || !this.isAlive()) return false;
+        const escapeRoll = Math.random() * 100;
+        if (escapeRoll <= this.escapeChance) {
+            this.destroy(true);
+            showDialog(`${this.name} escaped from battle!`);
+            return true;
+        }
+        return false;
+    }
+
+    //@title PLAYER ATTACK
     handleAttack() {
         if (!player || !player.attackReady) return;
 
@@ -396,14 +410,6 @@ export class Enemy {
         if (isDead) this.onDeath();
     }
 
-    onDeath() {
-        player.addXp(this.xpReward);
-        player.addKill(this.templateId);
-        showDialog(`${this.name} was defeated! +${this.xpReward} XP`);
-        this.dropLoot();
-        this.destroy();
-    }
-
     takeDamage(damage, isCritical = false) {
         this.hp = Math.max(0, this.hp - damage);
         this.hpBar.setCurrent(this.hp);
@@ -418,17 +424,87 @@ export class Enemy {
         return this.hp <= 0;
     }
 
-    attemptEscape() {
-        if (!this.canEscape || !this.isAlive()) return false;
-        const escapeRoll = Math.random() * 100;
-        if (escapeRoll <= this.escapeChance) {
-            this.destroy(true);
-            showDialog(`${this.name} escaped from battle!`);
-            return true;
-        }
-        return false;
+    //@title REMOVE ENEMY
+    onDeath() {
+        player.addXp(this.xpReward);
+        player.addKill(this.templateId);
+        showDialog(`${this.name} was defeated! +${this.xpReward} XP`);
+        this.dropLoot();
+        this.destroy();
     }
 
+    dropLoot() {
+        if (!this.loot || this.loot.length === 0) return;
+        const itemMap = {};
+        const luckBonus = player.getAttributeValue('luck');
+        this.loot.forEach(lootItem => {
+            const effectiveChance = Math.min(lootItem.chance + Math.min(luckBonus, 30), 95);
+            if (Math.random() * 100 <= effectiveChance) {
+                const itemId = lootItem.id;
+                const baseQuantity = lootItem.quantity || 1;
+                let extraQuantity = 0;
+                if (Math.random() * 100 < (luckBonus * 0.5)) {
+                    extraQuantity = 1;
+                }
+                const quantity = baseQuantity + extraQuantity;
+                if (itemMap[itemId]) {
+                    itemMap[itemId].quantity += quantity;
+                } else {
+                    itemMap[itemId] = { 
+                        id: itemId,
+                        quantity: quantity,
+                        name: db.items.find(item => item.id === itemId)?.name || itemId
+                    };
+                }
+            }
+        });
+        const obtainedItems = Object.values(itemMap);
+        obtainedItems.forEach(item => {
+            player.addItem(item.id, item.quantity);
+        });
+        if (obtainedItems.length > 0) {
+            const lootMessage = obtainedItems.map(item => 
+                `${item.quantity}x ${item.name}`
+            ).join('<br>');
+            showDialog(`You obtained:<br>${lootMessage}`);
+        }
+    }
+
+    destroy(isEscaping = false) {
+        if (this.isDestroying) return;
+        this.isDestroying = true;
+        const event = new CustomEvent('enemyDestroyed', { detail: { enemyId: this.id } });
+        document.dispatchEvent(event);
+        cancelAnimationFrame(this.animationFrame);
+        if (this.moveType === 'FIXED') {
+            this.element.removeEventListener('mousedown', this.startDrag);
+            this.element.removeEventListener('touchstart', this.startDrag);
+        }
+        if (this.element) {
+            if (isEscaping) {
+                this.element.classList.add('enemy-escaping');
+            } else {
+                this.element.classList.add('enemy-dying');
+            }
+            setTimeout(() => {
+                this.element?.parentNode?.removeChild(this.element);
+                const index = enemies.indexOf(this);
+                if (index !== -1) {
+                    enemies.splice(index, 1);
+                }
+                this.element = null;
+                if (enemies.length === 0) {
+                    document.getElementById('btn-advance').textContent = 'ADVANCE';
+                }
+            }, isEscaping ? 800 : 500);
+        }
+    }
+
+    isAlive() {
+        return this.hp > 0 && this.element !== null && !this.isDestroying;
+    }
+
+    //@title ATTACK PLAYER
     startAttackCooldown() {
         this.attackCooldown = 0;
         this.attackCooldownBar.setCurrent(this.attackCooldown);
@@ -500,36 +576,7 @@ export class Enemy {
         this.startAttackCooldown();
     }
 
-    dropLoot() {
-        if (!this.loot || this.loot.length === 0) return;
-        const itemMap = {};
-        this.loot.forEach(lootItem => {
-            if (Math.random() * 100 <= lootItem.chance) {
-                const itemId = lootItem.id;
-                const quantity = lootItem.quantity || 1;
-                if (itemMap[itemId]) {
-                    itemMap[itemId].quantity += quantity;
-                } else {
-                    itemMap[itemId] = { 
-                        id: itemId,
-                        quantity: quantity,
-                        name: db.items.find(item => item.id === itemId)?.name || itemId
-                    };
-                }
-            }
-        });
-        const obtainedItems = Object.values(itemMap);
-        obtainedItems.forEach(item => {
-            player.addItem(item.id, item.quantity);
-        });
-        if (obtainedItems.length > 0) {
-            const lootMessage = obtainedItems.map(item => 
-                `${item.quantity}x ${item.name}`
-            ).join('<br>');
-            showDialog(`You obtained:<br>${lootMessage}`);
-        }
-    }
-
+    //@title EFFECTS
     addEffect(effectId, source = null) {
         const effectTemplate = db.effects.find(e => e.id === effectId);
         if (!effectTemplate) {
@@ -635,40 +682,9 @@ export class Enemy {
         });
         attachTooltips();
     }
-
-    destroy(isEscaping = false) {
-        if (this.isDestroying) return;
-        this.isDestroying = true;
-        cancelAnimationFrame(this.animationFrame);
-        if (this.moveType === 'FIXED') {
-            this.element.removeEventListener('mousedown', this.startDrag);
-            this.element.removeEventListener('touchstart', this.startDrag);
-        }
-        if (this.element) {
-            if (isEscaping) {
-                this.element.classList.add('enemy-escaping');
-            } else {
-                this.element.classList.add('enemy-dying');
-            }
-            setTimeout(() => {
-                this.element?.parentNode?.removeChild(this.element);
-                const index = enemies.indexOf(this);
-                if (index !== -1) {
-                    enemies.splice(index, 1);
-                }
-                this.element = null;
-                if (enemies.length === 0) {
-                    document.getElementById('btn-advance').textContent = 'ADVANCE';
-                }
-            }, isEscaping ? 800 : 500);
-        }
-    }
-
-    isAlive() {
-        return this.hp > 0 && this.element !== null && !this.isDestroying;
-    }
 }
 
+//@title OUTSIDE CLASS FUNCTIONS
 export function clearAllEnemies() {
     enemies.forEach(enemy => enemy.destroy());
     enemies = [];

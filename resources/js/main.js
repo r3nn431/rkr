@@ -248,7 +248,7 @@ function advance() {
     clearAllEvents();
     player.resetBattle();
     document.getElementById('btn-advance').disabled = true;
-    
+
     imgBackground.classList.remove('walk-effect-up', 'walk-effect-down');
     if(stepToggle) {
         imgBackground.classList.add('walk-effect-up');
@@ -306,4 +306,21 @@ function advance() {
             }
         }
     }, 500);
+}
+
+
+
+function verifyLoadData(data){
+    if (!data) return false;
+    if(data[version]!=version) {
+        showToast(`Warning! Versions mismatch - (save version: ${data[version]}/game version: ${version}) Some things may not work properly.`, 'warn');
+    } else showToast("Game loaded", "success");
+    
+    log.forEach(function(eventText) {
+        const logLine = document.createElement("p");
+        logLine.textContent = eventText;
+        lblLog.appendChild(logLine);
+        lblLog.scrollTop = lblLog.scrollHeight;
+    }); 
+    // display dialog last log
 }

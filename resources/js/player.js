@@ -26,7 +26,7 @@ export class Player {
         this.dexterity = { 
             value: 1,
             maxValue: 100,
-            tempValue: 1
+            tempValue: 0
         };
         this.arcane = { 
             value: 1,
@@ -185,16 +185,27 @@ export class Player {
         document.getElementById('current-startdate').textContent = formatDate(this.startDate, true);
         this.elements.title.textContent = this.title || 'Player';
         this.elements.constitution.textContent = this.getAttributeValue('constitution') || 0;
+        this.elements.constitution.classList.toggle('attribute-max', this.constitution.value >= this.constitution.maxValue);
         this.elements.strength.textContent = this.getAttributeValue('strength') || 0;
+        this.elements.strength.classList.toggle('attribute-max', this.strength.value >= this.strength.maxValue);
         this.elements.dexterity.textContent = this.getAttributeValue('dexterity') || 0;
+        this.elements.dexterity.classList.toggle('attribute-max', this.dexterity.value >= this.dexterity.maxValue);
         this.elements.arcane.textContent = this.getAttributeValue('arcane') || 0;
+        this.elements.arcane.classList.toggle('attribute-max', this.arcane.value >= this.arcane.maxValue);
         this.elements.defense.textContent = this.getDefenseValue() || 0;
+        this.elements.defense.classList.toggle('attribute-max', this.defense.value >= this.defense.maxValue);
         this.elements.attack.textContent = this.getAttackValue() || 0;
+        this.elements.attack.classList.toggle('attribute-max', this.attack.value >= this.attack.maxValue);
         this.elements.evasion.textContent = this.getEvasionValue() || 0;
+        this.elements.evasion.classList.toggle('attribute-max', this.evasion.value >= this.evasion.maxValue);
         this.elements.stealth.textContent = this.getStealthValue() || 0;
+        this.elements.stealth.classList.toggle('attribute-max', this.stealth.value >= this.stealth.maxValue);
         this.elements.accuracy.textContent = this.getAttributeValue('accuracy') || 0;
+        this.elements.accuracy.classList.toggle('attribute-max', this.accuracy.value >= this.accuracy.maxValue);
         this.elements.alchemy.textContent = `${this.getAttributeValue('alchemy')} (${this.alchemy.xp}/${this.alchemy.nextXp})` || 0;
+        this.elements.alchemy.classList.toggle('attribute-max', this.alchemy.value >= this.alchemy.maxValue);
         this.elements.craftsmanship.textContent = `${this.getAttributeValue('craftsmanship')} (${this.craftsmanship.xp}/${this.craftsmanship.nextXp})` || 0;
+        this.elements.craftsmanship.classList.toggle('attribute-max', this.craftsmanship.value >= this.craftsmanship.maxValue);
         this.elements.crit.textContent = `${this.criticalChance}% (${this.criticalMultiplier})` || 0;
         this.elements.kills.textContent = this.getTotalKills() || 0;
         this.elements.playtime.textContent = this.formatPlaytime() || '00:00:00';
@@ -633,13 +644,34 @@ export class Player {
     }
 
     startTargetSelection(abilityId) {
-        if (this.currentTargetingAbility) return;
+        if (enemies.length === 0) {
+            showDialog("There are no enemies to target!", {doLog: false});
+            return;
+        }
+        if (this.currentTargetingAbility) {
+            this.cancelTargetSelection();
+        }
         const ability = this.abilities[abilityId];
         if (!ability || ability.target !== "ENEMY") return;
+
+        const validTargets = enemies.filter(enemy => {
+            if (ability.effectId) {
+                return !enemy.hasEffect(ability.effectId);
+            }
+            return true;
+        });
+        if (validTargets.length === 0) {
+            showDialog("No valid targets for this ability!", {doLog: false});
+            return;
+        }
+
         this.currentTargetingAbility = abilityId;
-        enemies.forEach(enemy => {
+        
+        validTargets.forEach(enemy => {
             enemy.element.classList.add('selectable');
             enemy.element.addEventListener('click', this.handleEnemySelection);
+            enemy.element.addEventListener('mouseenter', enemy.handleMouseEnter);
+            enemy.element.addEventListener('mouseleave', enemy.handleMouseLeave);
         });
 
         const container = document.createElement('div');
@@ -652,10 +684,14 @@ export class Player {
         container.querySelector('.target-selection-cancel').addEventListener('click', () => {
             this.cancelTargetSelection();
         });
-        enemies.forEach(enemy => {
-            enemy.element.addEventListener('mouseenter', enemy.handleMouseEnter);
-            enemy.element.addEventListener('mouseleave', enemy.handleMouseLeave);
-        });
+
+        this.targetSelectionCleanup = () => {
+            if (enemies.length === 0) {
+                this.cancelTargetSelection();
+            }
+        };
+        document.addEventListener('enemyDestroyed', this.targetSelectionCleanup);
+        //await Neutralino.events.on('enemyDestroyed', this.targetSelectionCleanup);
     }
 
     handleEnemySelection = (event) => {
@@ -663,6 +699,15 @@ export class Player {
         const enemyId = enemyElement.dataset.enemyId;
         const enemy = enemies.find(e => e.id === enemyId);
         if (enemy && this.currentTargetingAbility) {
+            if (!enemy.isAlive()) {
+                showDialog("That enemy is already defeated!", {doLog: false});
+                return;
+            }
+            const ability = this.abilities[this.currentTargetingAbility];
+            if (ability.effectId && enemy.hasEffect(ability.effectId)) {
+                showDialog("That enemy is already affected by this effect!", {doLog: false});
+                return;
+            }
             this.applyAbilityToEnemy(this.currentTargetingAbility, enemy);
             this.cancelTargetSelection();
         }
@@ -671,11 +716,17 @@ export class Player {
     cancelTargetSelection() {
         if (!this.currentTargetingAbility) return;
         enemies.forEach(enemy => {
-            enemy.element.classList.remove('selectable', 'highlighted');
-            enemy.element.removeEventListener('click', this.handleEnemySelection);
-            enemy.element.removeEventListener('mouseenter', enemy.handleMouseEnter);
-            enemy.element.removeEventListener('mouseleave', enemy.handleMouseLeave);
+            if (enemy.element) {
+                enemy.element.classList.remove('selectable', 'highlighted');
+                enemy.element.removeEventListener('click', this.handleEnemySelection);
+                enemy.element.removeEventListener('mouseenter', enemy.handleMouseEnter);
+                enemy.element.removeEventListener('mouseleave', enemy.handleMouseLeave);
+            }
         });
+        if (this.targetSelectionCleanup) {
+            document.removeEventListener('enemyDestroyed', this.targetSelectionCleanup);
+            this.targetSelectionCleanup = null;
+        }
         const selectionUI = document.querySelector('.target-selection-container');
         if (selectionUI) {
             selectionUI.remove();
@@ -1095,7 +1146,7 @@ export class Player {
     }
 }
 
-//@title PLAYER FUNCTIONS OUTSIDE CLASS
+//@title OUTSIDE CLASS FUNCTIONS
 function gameOver(causeOfDeath) {
     showDialog(`You have been slain by ${causeOfDeath.name}...`, { speed: 110 });
     clearAllEnemies();
