@@ -4,24 +4,118 @@ const TOAST_DURATION = 3000;
 const TOAST_ANIMATION_DURATION = 300;
 let sharedTooltip;
 
-function showToast(message, type = 'info', duration = TOAST_DURATION) {
+function showToasta(message, type = 'info', options = {}) {
+    const {
+        duration = TOAST_DURATION,
+        position = 'top',
+        icon = null,
+        targetElement = null,
+        direction = 'left'
+    } = options;
     let container = document.getElementById('toast-container');
     if (!container) {
         container = document.createElement('div');
         container.id = 'toast-container';
         document.body.appendChild(container);
     }
+    container.className = `toast-container ${position}`;
+
+    let targetContainer;
+    if (targetElement) {
+        const targetId = targetElement.id || 'target-'+Date.now();
+        targetContainer = document.getElementById(`toast-container-${targetId}`);
+        if (!targetContainer) {
+            targetContainer = document.createElement('div');
+            targetContainer.id = `toast-container-${targetId}`;
+            targetContainer.className = `toast-target-container ${direction}`;
+            document.body.appendChild(targetContainer);
+            updateTargetContainerPosition(targetContainer, targetElement, direction);
+            const observer = new ResizeObserver(() => {
+                updateTargetContainerPosition(targetContainer, targetElement, direction);
+            });
+            observer.observe(targetElement);
+        }
+    }
+
     const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
+    toast.className = `toast ${type} medieval-toast ${targetElement ? 'near-element' : ''}`;
     const icons = {
         success: 'check_circle',
         error: 'error',
         warning: 'warning',
-        info: 'info'
+        info: 'info',
+        added: 'add',
+        removed: 'remove',
+        buff: 'arrow_upward',
+        debuff: 'arrow_downward'
     };
     toast.innerHTML = `
-        <span class="material-icons">${icons[type] || 'info'}</span>
+        <span class="material-icons">${icon || icons[type] || 'info'}</span>
         <span>${message}</span>
+        <div class="toast-decoration"></div>
+    `;
+    (targetContainer || container).appendChild(toast);
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 10);
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+            toast.remove();
+            if (targetContainer && targetContainer.children.length === 0) {
+                targetContainer.remove();
+            }
+        }, TOAST_ANIMATION_DURATION);
+    }, duration);
+}
+function showToast(message, type = 'info', options = {}) {
+    const {
+        duration = TOAST_DURATION,
+        position = 'bottom',
+        icon = null,
+        targetElement = null,
+        direction = 'left'
+    } = options;
+    let container;
+    if (targetElement) {
+        const targetId = targetElement.id || 'target-'+Date.now();
+        container = document.getElementById(`toast-container-${targetId}`);
+        if (!container) {
+            container = document.createElement('div');
+            container.id = `toast-container-${targetId}`;
+            container.className = `toast-target-container ${direction}`;
+            document.body.appendChild(container);
+            updateTargetContainerPosition(container, targetElement, direction);
+            const observer = new ResizeObserver(() => {
+                updateTargetContainerPosition(container, targetElement, direction);
+            });
+            observer.observe(targetElement);
+        }
+    } else {
+        container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            document.body.appendChild(container);
+        }
+        container.className = `toast-container ${position}`;
+    }
+    const toast = document.createElement('div');
+    toast.className = `toast ${type} medieval-toast ${targetElement ? 'near-element' : ''}`;
+    const icons = {
+        success: 'check_circle',
+        error: 'error',
+        warning: 'warning',
+        info: 'info',
+        added: 'add',
+        removed: 'remove',
+        buff: 'arrow_upward',
+        debuff: 'arrow_downward'
+    };
+    toast.innerHTML = `
+        <span class="material-icons">${icon || icons[type] || 'info'}</span>
+        <span>${message}</span>
+        <div class="toast-decoration"></div>
     `;
     container.appendChild(toast);
     setTimeout(() => {
@@ -31,8 +125,24 @@ function showToast(message, type = 'info', duration = TOAST_DURATION) {
         toast.classList.remove('show');
         setTimeout(() => {
             toast.remove();
+            if (targetElement && container.children.length === 0) {
+                container.remove();
+            }
         }, TOAST_ANIMATION_DURATION);
     }, duration);
+}
+
+function updateTargetContainerPosition(container, targetElement, direction) {
+    const rect = targetElement.getBoundingClientRect();
+    const gap = 10;
+    if (direction === 'right') {
+        container.style.left = `${rect.right + gap}px`;
+        container.style.top = `${rect.top}px`;
+    } else {
+        container.style.left = `${rect.left - gap - 200}px`;
+        container.style.top = `${rect.top}px`;
+    }
+    container.style.position = 'absolute';
 }
 
 function togglePnl(pnl) {

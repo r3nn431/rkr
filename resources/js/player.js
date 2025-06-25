@@ -2,14 +2,16 @@
 import * as db from './database.js';
 import ProgressBar from './progressBar.js';
 import { playSFX, showDialog } from './config.js';
-import { formatDate, logError, attachTooltips } from './utils.js';
+import { formatDate, logError, attachTooltips, showToast } from './utils.js';
 import { enemies, clearAllEnemies } from './enemy.js';
 import { clearAllEvents } from './event.js';
+
+const attributes = ['constitution', 'strength', 'dexterity', 'arcane', 'defense', 'attack', 'evasion', 'stealth', 'accuracy', 'alchemy', 'craftsmanship', 'luck'];
 
 export class Player {
     constructor() {
         this.title = 'Newborn';
-        this.attributePoints = 1;
+        this.attributePoints = 0;
         // ATTRIBUTES
         this.constitution = { 
             value: 1,
@@ -24,7 +26,7 @@ export class Player {
         this.dexterity = { 
             value: 1,
             maxValue: 100,
-            tempValue: 0
+            tempValue: 1
         };
         this.arcane = { 
             value: 1,
@@ -243,8 +245,13 @@ export class Player {
     }
 
     //@title ATTRIBUTE CALCULATIONS
-    getAttributeValue(attrName) {
-        return Math.min(Math.floor(this[attrName].value + this[attrName].tempValue), this[attrName].maxValue);
+    getAttributeValue(attribute) {
+        if (!this[attribute]) {
+            logError(new Error(`Attribute "${attribute}" does not exist`));
+            return 0;
+        }
+        if (this[attribute].value > this[attribute].maxValue) this[attribute].value = this[attribute].maxValue;
+        return Math.min(Math.floor(this[attribute].value + this[attribute].tempValue), this[attribute].maxValue + this[attribute].tempValue);
     }
 
     getDefenseValue(){
@@ -307,12 +314,21 @@ export class Player {
     }
 
     applyModifier(attribute, amount = 1, isTemporary = false) {
-        // if type null get random attribute
+        if (attribute == null) {
+            attribute = attributes[Math.floor(Math.random() * attributes.length)];
+        }
         if (isTemporary){
             this[attribute].tempValue += amount;
         } else {
             this[attribute].value += amount;
         }
+
+        if (this[attribute].value >= this[attribute].maxValue) {
+            this.elements[attribute].classList.add('attribute-max');
+        } else {
+            this.elements[attribute].classList.remove('attribute-max');
+        }
+
         this.elements[attribute].textContent = this.getAttributeValue(attribute);
         switch (attribute) {
             case 'constitution': {
@@ -356,9 +372,10 @@ export class Player {
             }
         }
         //this.elements.crit.textContent = `${this.criticalChance}% (${this.criticalMultiplier})` || 0;
+
         if (this[attribute].tempValue > 0) this.elements[attribute].style.color = 'green';
         else if (this[attribute].tempValue < 0) this.elements[attribute].style.color = 'red';
-        else this.elements[attribute].style.color = 'white';
+        else this.elements[attribute].style.color = 'var(--text-primary)';
     }
 
     increaseAttribute(attribute) {
@@ -499,6 +516,7 @@ export class Player {
         };
         this.applyAbilityEffects(id);
         this.updateAbilitiesUI();
+        showToast(`New ${template.isPassive ? 'passive' : 'power'} added!`, `${template.isPassive || template.isCurse ? 'debuff' : 'buff'}`, {targetElement: document.getElementById('btn-abilities')});
         return true;
     }
     
@@ -762,20 +780,20 @@ export class Player {
 
     //@title EFFECTS
     addEffect(effectId, source = null) {
-        const effectTemplate = db.effects.find(e => e.id === effectId);
-        if (!effectTemplate) {
+        const template = db.effects.find(e => e.id === effectId);
+        if (!template) {
             logError(new Error(`Effect ${effectId} not found`));
             return false;
         }
         if (this.hasEffect(effectId)) {
-            showDialog(`You are already affected by ${effectTemplate.name}.`, {doLog: false});
+            showDialog(`You are already affected by ${template.name}.`, {doLog: false});
             return false;
         }
         this.removeEffect(effectId);
         const effect = {
-            ...effectTemplate,
+            ...template,
             appliedAt: Date.now(),
-            remainingUses: effectTemplate.uses || null,
+            remainingUses: template.uses || null,
             source: source,
             timer: null,
             interval: null
@@ -783,6 +801,7 @@ export class Player {
         this.activeEffects[effectId] = effect;
         this.startEffectTimer(effectId);
         this.updateEffectsUI();
+        showToast(`New effect added!`, `${template.isDebuff ? 'debuff' : 'buff'}`, {targetElement: document.getElementById('btn-effects')});
         return true;
     }
 
@@ -797,6 +816,7 @@ export class Player {
         }
         delete this.activeEffects[effectId];
         this.updateEffectsUI();
+        showToast(`Effect removed!`, `${effect.isDebuff ? 'debuff' : 'buff'}`, {targetElement: document.getElementById('btn-effects')});
         return true;
     }
 
@@ -882,6 +902,7 @@ export class Player {
             };
         }
         this.updateInventoryUI();
+        showToast('New item added!', 'added', {targetElement: document.getElementById('btn-inventory')});
         return true;
     }
 
@@ -892,6 +913,7 @@ export class Player {
             delete this.inventory.items[itemId];
         }
         this.updateInventoryUI();
+        showToast('Item removed!', 'removed', {targetElement: document.getElementById('btn-inventory')});
         return true;
     }
 

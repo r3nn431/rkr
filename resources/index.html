@@ -47,7 +47,7 @@
           </div>
           <div id="side-content">
             <div id="character" data-pages="side">
-              <h3>CHARACTER</h3>
+              <h3>CHARACTER</h3><br>
               <h4>MAIN ATTRIBUTES <span>(AP: <span id="player-ap">0</span>)</span></h4>
               <div class="attribute-row">
                 <p class="tooltip" data-tooltip='
@@ -105,9 +105,6 @@
               <h4>SKILLS</h4>
               <p class="tooltip" data-tooltip="Your ability to make better consumables">Alchemy: <span id="player-alc">0</span></p>
               <p class="tooltip" data-tooltip="Your ability to make better equipment">Craftsmanship: <span id="player-craft">0</span></p>
-              <hr class="hr-icon">
-              <h4>EFFECTS</h4>
-              <div id="effects-container"></div>
             </div>
             <div id="inventory" class="hidden" data-pages="side">
               <h3>INVENTORY</h3>
@@ -193,6 +190,14 @@
                 <p>Total kills: <span id="current-total-kills">0</span></p>
               </div>
             </div>
+            <div id="effects" class="hidden" data-pages="side">
+              <h3>EFFECTS</h3>
+              <div id="effects-container" class="side-container"></div>
+            </div>
+            <div id="recipes" class="hidden" data-pages="side">
+              <h3>RECIPES</h3>
+              <div id="recipes-container" class="side-container"></div>
+            </div>
           </div>
         </div>
         <div id="main-game">
@@ -227,20 +232,28 @@
             <span class="material-icons">account_circle</span>
             <span>Character</span>
           </button>
+          <button class="btns-icon" id="btn-effects">
+            <span class="material-icons">cyclone</span>
+            <span>Effects</span>
+          </button>
           <button class="btns-icon" id="btn-inventory">
             <span class="material-icons">backpack</span>
             <span>Inventory</span>
           </button>
           <button class="btns-icon" id="btn-abilities">
-            <span class="material-icons">power</span>
+            <span class="material-icons">auto_fix_high</span>
             <span>Abilities</span>
+          </button>
+          <button class="btns-icon" id="btn-recipes">
+            <span class="material-icons">lab_panel</span>
+            <span>Recipes</span>
           </button>
           <button class="btns-icon" id="btn-statistics">
             <span class="material-icons">insights</span>
             <span>Statistics</span>
           </button>
           <button class="btns-icon" id="btn-log">
-            <span class="material-icons">list_alt</span>
+            <span class="material-icons">history_edu</span>
             <span>Log</span>
           </button>
         </div>

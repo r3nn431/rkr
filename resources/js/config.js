@@ -33,7 +33,7 @@ export const settingsElements = {
 }
 
 export function playBGM(name){
-    audioBGM.src = "/assets/bgm/"+name;
+    audioBGM.src = "/assets/audio/bgm/"+name;
     audioBGM.volume = config.volumeBGM / 100;
     audioBGM.loop = true;
     audioBGM.play();
@@ -41,7 +41,7 @@ export function playBGM(name){
 
 export function playSFX(name){
     const audio = document.createElement('audio');
-    audio.src = "/assets/sfx/"+name;
+    audio.src = "/assets/audio/sfx/"+name;
     document.body.appendChild(audio);
     audio.volume = config.volumeSFX / 100;
     audio.play();
@@ -61,7 +61,7 @@ export function playBGS(name) {
             });
         return;
     }
-    const audio = new Audio("/assets/bgs/"+name);
+    const audio = new Audio("/assets/audio/bgs/"+name);
     audio.loop = true;
     audio.volume = config.volumeBGS / 100;
     audio.play()

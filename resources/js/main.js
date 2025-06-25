@@ -107,6 +107,8 @@ Neutralino.events.on("ready", async () => {
     document.getElementById('btn-files').addEventListener('click', () => changePnl(document.getElementById('files'), sidePnls));
     document.getElementById('btn-statistics').addEventListener('click', () => changePnl(document.getElementById('statistics'), sidePnls));
     document.getElementById('btn-abilities').addEventListener('click', () => changePnl(document.getElementById('abilities'), sidePnls));
+    document.getElementById('btn-effects').addEventListener('click', () => changePnl(document.getElementById('effects'), sidePnls));
+    document.getElementById('btn-recipes').addEventListener('click', () => changePnl(document.getElementById('recipes'), sidePnls));
 
     document.addEventListener('contextmenu', function(event) {
         event.preventDefault();
@@ -180,6 +182,7 @@ document.getElementById('btn-exit-game').addEventListener('click', async () => {
             Neutralino.app.exit();
         } else if (result === 1) {
             clearAllEnemies();
+            clearAllEvents();
             player.destroy();
             changePnl(document.getElementById('menu-container'), gamePnls);
             pnlMenu.classList.add('screen-on');
@@ -245,6 +248,7 @@ function advance() {
     clearAllEvents();
     player.resetBattle();
     document.getElementById('btn-advance').disabled = true;
+    
     imgBackground.classList.remove('walk-effect-up', 'walk-effect-down');
     if(stepToggle) {
         imgBackground.classList.add('walk-effect-up');
@@ -252,6 +256,7 @@ function advance() {
         imgBackground.classList.add('walk-effect-down');
     }
     stepToggle = !stepToggle;
+
     setTimeout(() => {
         document.getElementById('btn-advance').disabled = false;
         player.distance += 1;

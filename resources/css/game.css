@@ -128,40 +128,6 @@
     font-size: 20px;
 }
 
-.btns-terminal {
-    all: unset;
-    background: transparent;
-    border: 2px solid #00ffdd;
-    color: #00ffdd;
-    padding: 12px 24px;
-    font-family: 'Courier New', monospace;
-    font-size: 1.2rem;
-    text-transform: uppercase;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    text-shadow: 0 0 5px rgba(0, 255, 221, 0.5);
-}
-
-.btns-terminal:hover {
-    background: rgba(0, 255, 221, 0.1);
-    box-shadow: 0 0 15px rgba(0, 255, 221, 0.5);
-}
-
-.btns-terminal::before {
-    content: '>';
-    position: absolute;
-    left: -20px;
-    opacity: 0;
-    transition: all 0.3s ease;
-}
-
-.btns-terminal:hover::before {
-    left: 10px;
-    opacity: 1;
-}
-
 .enemy-attack-btn {
     width: 80%;
     padding: 5px;
@@ -479,23 +445,7 @@ blockquote::after {
     background: linear-gradient(to top, #1a1715, transparent);
 }
 
-/* UI */
-.player-ui {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 20px;
-    background-color: rgba(0, 0, 0, 0.5);
-    border-bottom: var(--border);
-    font-family: 'Courier New', monospace;
-}
-
-#game-ui {
-    display: flex;
-    width: 100%;
-    height: 100%;
-}
-
+/* SIDE PAINEL */
 .side-panel {
     width: 20vw;
     background-color: rgba(0, 0, 0, 0.7);
@@ -565,6 +515,23 @@ blockquote::after {
 
 #status-bars .progress-bar-text {
     font-size: 11px;
+}
+
+/* UI */
+.player-ui {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-bottom: var(--border);
+    font-family: 'Courier New', monospace;
+}
+
+#game-ui {
+    display: flex;
+    width: 100%;
+    height: 100%;
 }
 
 #main-game {
@@ -902,22 +869,6 @@ blockquote::after {
     0% { opacity: 0; transform: scale(0.5); }
     50% { opacity: 0.7; transform: scale(1.2); }
     100% { opacity: 0; transform: scale(1.5); }
-}
-
-.damage-popup {
-    position: absolute;
-    color: var(--error-red);
-    font-size: 24px;
-    font-weight: bold;
-    text-shadow: 0 0 5px black;
-    animation: floatUp 1s forwards;
-    z-index: 1000;
-    pointer-events: none;
-}
-
-@keyframes floatUp {
-    0% { transform: translateY(0); opacity: 1; }
-    100% { transform: translateY(-50px); opacity: 0; }
 }
 
 /* EVENTS */
@@ -1477,4 +1428,19 @@ blockquote::after {
 .btn-attribute:disabled {
     opacity: 0.3;
     cursor: not-allowed;
+}
+
+.attribute-max {
+  position: relative;
+}
+
+.attribute-max::after {
+  content: "MAX";
+  position: absolute;
+  right: -30px;
+  top: 0;
+  color: var(--accent-color);
+  font-size: 0.8em;
+  font-weight: bold;
+  text-shadow: 0 0 3px var(--text-glow);
 }
