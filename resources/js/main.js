@@ -46,10 +46,10 @@ window.addEventListener('unhandledrejection', (event) => {
 // GAME
 const imgBackground = document.getElementById('bg');
 const pnlMenu = document.getElementById('menu-content');
-
-const dirPaths = ['data', 'saves'];
 const gamePnls = Array.from(document.querySelectorAll('[data-pages="main"]'));
 const sidePnls = Array.from(document.querySelectorAll('[data-pages="side"]'));
+
+const dirPaths = ['data', 'saves'];
 let wordInterval = null;
 let glitchInterval = null;
 const titleWords = [
@@ -58,6 +58,7 @@ const titleWords = [
     document.getElementById('word3')
 ];
 let stepToggle = false;
+export let isLoading = true;
 
 function setBackground(name){
     document.getElementById('bg').src = `assets/img/bg/${name}`;
@@ -169,6 +170,27 @@ Neutralino.events.on("ready", async () => {
     });
 
     document.getElementById('settings').addEventListener('change', debounce(saveConfig, 300));
+
+    document.getElementById('constitution-row').setAttribute('data-tooltip', `
+        <p class="tooltip-name">Constitution</p>
+        <p class="tooltip-description">"Increases your resistance to damage and increases your maximum health"</p>
+        <p class="tooltip-effect">+20 max HP<br>+1 defense</p>
+    `);
+    document.getElementById('strength-row').setAttribute('data-tooltip', `
+        <p class="tooltip-name">Strength</p>
+        <p class="tooltip-description">"Increases the raw damage of your physical attacks"</p>
+        <p class="tooltip-effect">+2 attack</p>
+    `);
+    document.getElementById('dexterity-row').setAttribute('data-tooltip', `
+        <p class="tooltip-name">Dexterity</p>
+        <p class="tooltip-description">"Improves your agility, increasing your chances of dodging and escaping battles"</p>
+        <p class="tooltip-effect">+1 evasion<br>+1 stealth</p>
+    `);
+    document.getElementById('arcane-row').setAttribute('data-tooltip', `
+        <p class="tooltip-name">Arcane</p>
+        <p class="tooltip-description">"Increases your ability to use powers"</p>
+        <p class="tooltip-effect">+2 max MP</p>
+    `);
     attachTooltips();
 });
 
@@ -209,6 +231,7 @@ function startGame(){
     setBackground('corridor.png');
     //playBGM('corridor1.ogg');
     showDialog('You enter the dark dungeon...');
+    isLoading = false;
 }
 
 function attemptAdvance(){

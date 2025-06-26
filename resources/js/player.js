@@ -594,12 +594,8 @@ export class Player {
                 break;
             }
             case "ENEMY":{
-                if (enemies.length === 1) {
-                    if(!this.applyAbilityToEnemy(abilityId, enemies[0])) return false;
-                } else {
-                    this.startTargetSelection(abilityId);
-                }
-                break;
+                this.startTargetSelection(abilityId);
+                return false;
             }
             case "ALL_ENEMIES":{
                 if (ability.effectId){
@@ -615,18 +611,22 @@ export class Player {
                             affectedCount++;
                         }
                     });
-                    showDialog(`Used ${ability.name} on ${affectedCount} enem${affectedCount !== 1 ? 'ies' : 'y'}!`);
+                    showDialog(`Used ${ability.name} on ${affectedCount === enemies.length ? 'all' : `${affectedCount}`} enem${affectedCount !== 1 ? 'ies' : 'y'}!`);
                 }
                 break;
             }
             default: return false;
         }
+        return true;
+    }
+
+    reducePowerCost(abilityId){
+        const ability = this.abilities[abilityId];
         ability.usedThisBattle = true;
         if (ability.cooldown) {
             ability.remainingCooldown = Date.now() + ability.cooldown;
             this.startAbilityCooldown(ability.id);
         }
-        return true;
     }
 
     applyAbilityToEnemy(abilityId, enemy) {
@@ -640,6 +640,7 @@ export class Player {
             enemy.addEffect(ability.effectId, 'player');
         }
         showDialog(`Used ${ability.name} on ${enemy.name}!`);
+        this.reducePowerCost(abilityId);
         return true;
     }
 
@@ -684,14 +685,6 @@ export class Player {
         container.querySelector('.target-selection-cancel').addEventListener('click', () => {
             this.cancelTargetSelection();
         });
-
-        this.targetSelectionCleanup = () => {
-            if (enemies.length === 0) {
-                this.cancelTargetSelection();
-            }
-        };
-        document.addEventListener('enemyDestroyed', this.targetSelectionCleanup);
-        //await Neutralino.events.on('enemyDestroyed', this.targetSelectionCleanup);
     }
 
     handleEnemySelection = (event) => {
@@ -723,10 +716,6 @@ export class Player {
                 enemy.element.removeEventListener('mouseleave', enemy.handleMouseLeave);
             }
         });
-        if (this.targetSelectionCleanup) {
-            document.removeEventListener('enemyDestroyed', this.targetSelectionCleanup);
-            this.targetSelectionCleanup = null;
-        }
         const selectionUI = document.querySelector('.target-selection-container');
         if (selectionUI) {
             selectionUI.remove();
@@ -768,7 +757,8 @@ export class Player {
         this.elements.abilities.querySelectorAll('.btn-ability-use').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const abilityId = e.target.closest('.ability-item').dataset.abilityId;
-                this.usePower(abilityId);
+                const used = this.usePower(abilityId);
+                if (used) this.reducePowerCost(abilityId);
             });
         });
     }

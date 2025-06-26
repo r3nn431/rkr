@@ -49,45 +49,29 @@
             <div id="character" data-pages="side">
               <h3>CHARACTER</h3><br>
               <h4>MAIN ATTRIBUTES <span>(AP: <span id="player-ap">0</span>)</span></h4>
-              <div class="attribute-row">
-                <p class="tooltip" data-tooltip='
-                  <p class="tooltip-name">Constitution</p>
-                  <p class="tooltip-description">"Increases your resistance to damage and increases your maximum health"</p>
-                  <p class="tooltip-effect">+20 max HP<br>+1 defense</p>
-                '>Constitution: <span id="player-con">0</span></p>
+              <div class="attribute-row tooltip">
+                <p class="tooltip" id="constitution-row">Constitution: <span id="player-con">0</span></p>
                 <div class="attribute-controls" data-attribute="constitution">
                   <button class="btn-attribute increase">+</button>
                   <button class="btn-attribute decrease">-</button>
                 </div>
               </div>
               <div class="attribute-row">
-                <p class="tooltip" data-tooltip='
-                  <p class="tooltip-name">Strength</p>
-                  <p class="tooltip-description">"Increases the raw damage of your physical attacks"</p>
-                  <p class="tooltip-effect">+2 attack</p>
-                '>Strength: <span id="player-str">0</span></p>
+                <p class="tooltip" id="strength-row">Strength: <span id="player-str">0</span></p>
                 <div class="attribute-controls" data-attribute="strength">
                   <button class="btn-attribute increase">+</button>
                   <button class="btn-attribute decrease">-</button>
                 </div>
               </div>
               <div class="attribute-row">
-                <p class="tooltip" data-tooltip='
-                  <p class="tooltip-name">Dexterity</p>
-                  <p class="tooltip-description">"Improves your agility, increasing your chances of dodging and escaping battles"</p>
-                  <p class="tooltip-effect">+1 evasion<br>+1 stealth</p>
-                '>Dexterity: <span id="player-dex">0</span></p>
+                <p class="tooltip" id="dexterity-row">Dexterity: <span id="player-dex">0</span></p>
                 <div class="attribute-controls" data-attribute="dexterity">
                   <button class="btn-attribute increase">+</button>
                   <button class="btn-attribute decrease">-</button>
                 </div>
               </div>
               <div class="attribute-row">
-                <p class="tooltip" data-tooltip='
-                  <p class="tooltip-name">Arcane</p>
-                  <p class="tooltip-description">"Increases your ability to use powers"</p>
-                  <p class="tooltip-effect">+2 max MP</p>
-                '>Arcane: <span id="player-arc">0</span></p>
+                <p class="tooltip" id="arcane-row">Arcane: <span id="player-arc">0</span></p>
                 <div class="attribute-controls" data-attribute="arcane">
                   <button class="btn-attribute increase">+</button>
                   <button class="btn-attribute decrease">-</button>

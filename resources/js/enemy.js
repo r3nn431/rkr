@@ -473,8 +473,6 @@ export class Enemy {
     destroy(isEscaping = false) {
         if (this.isDestroying) return;
         this.isDestroying = true;
-        const event = new CustomEvent('enemyDestroyed', { detail: { enemyId: this.id } });
-        document.dispatchEvent(event);
         cancelAnimationFrame(this.animationFrame);
         if (this.moveType === 'FIXED') {
             this.element.removeEventListener('mousedown', this.startDrag);
@@ -486,7 +484,7 @@ export class Enemy {
             } else {
                 this.element.classList.add('enemy-dying');
             }
-            setTimeout(() => {
+            setTimeout(async () => {
                 this.element?.parentNode?.removeChild(this.element);
                 const index = enemies.indexOf(this);
                 if (index !== -1) {
@@ -495,6 +493,7 @@ export class Enemy {
                 this.element = null;
                 if (enemies.length === 0) {
                     document.getElementById('btn-advance').textContent = 'ADVANCE';
+                    player.cancelTargetSelection();
                 }
             }, isEscaping ? 800 : 500);
         }

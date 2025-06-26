@@ -1,73 +1,10 @@
 // js/utils.js
+import { isLoading } from "./main.js";
 
 const TOAST_DURATION = 3000;
 const TOAST_ANIMATION_DURATION = 300;
 let sharedTooltip;
 
-function showToasta(message, type = 'info', options = {}) {
-    const {
-        duration = TOAST_DURATION,
-        position = 'top',
-        icon = null,
-        targetElement = null,
-        direction = 'left'
-    } = options;
-    let container = document.getElementById('toast-container');
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'toast-container';
-        document.body.appendChild(container);
-    }
-    container.className = `toast-container ${position}`;
-
-    let targetContainer;
-    if (targetElement) {
-        const targetId = targetElement.id || 'target-'+Date.now();
-        targetContainer = document.getElementById(`toast-container-${targetId}`);
-        if (!targetContainer) {
-            targetContainer = document.createElement('div');
-            targetContainer.id = `toast-container-${targetId}`;
-            targetContainer.className = `toast-target-container ${direction}`;
-            document.body.appendChild(targetContainer);
-            updateTargetContainerPosition(targetContainer, targetElement, direction);
-            const observer = new ResizeObserver(() => {
-                updateTargetContainerPosition(targetContainer, targetElement, direction);
-            });
-            observer.observe(targetElement);
-        }
-    }
-
-    const toast = document.createElement('div');
-    toast.className = `toast ${type} medieval-toast ${targetElement ? 'near-element' : ''}`;
-    const icons = {
-        success: 'check_circle',
-        error: 'error',
-        warning: 'warning',
-        info: 'info',
-        added: 'add',
-        removed: 'remove',
-        buff: 'arrow_upward',
-        debuff: 'arrow_downward'
-    };
-    toast.innerHTML = `
-        <span class="material-icons">${icon || icons[type] || 'info'}</span>
-        <span>${message}</span>
-        <div class="toast-decoration"></div>
-    `;
-    (targetContainer || container).appendChild(toast);
-    setTimeout(() => {
-        toast.classList.add('show');
-    }, 10);
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => {
-            toast.remove();
-            if (targetContainer && targetContainer.children.length === 0) {
-                targetContainer.remove();
-            }
-        }, TOAST_ANIMATION_DURATION);
-    }, duration);
-}
 function showToast(message, type = 'info', options = {}) {
     const {
         duration = TOAST_DURATION,
@@ -76,6 +13,9 @@ function showToast(message, type = 'info', options = {}) {
         targetElement = null,
         direction = 'left'
     } = options;
+    if (isLoading && targetElement) {
+        return;
+    }
     let container;
     if (targetElement) {
         const targetId = targetElement.id || 'target-'+Date.now();
