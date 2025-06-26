@@ -517,6 +517,11 @@ blockquote::after {
     font-size: 11px;
 }
 
+#player-ap-container {
+    color: #c186f1;
+    font-size: 20px;
+}
+
 /* UI */
 .player-ui {
     display: flex;

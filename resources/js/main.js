@@ -4,7 +4,7 @@ import {
     config, CONFIG_PATH, settingsElements, audioBGM, playBGM, playSFX, showDialog
 } from './config.js';
 import { 
-    showToast, togglePnl, changePnl, userConfirmation, formatDate, debounce, adjustReceivedData, logError, attachTooltips,
+    showToast, togglePnl, changePnl, userConfirmation, formatDate, debounce, adjustReceivedData, logError, attachTooltips, getActivePnl, 
     setStorage, getStorage, getJsonFile, setJsonFile, verifyPath, getWeightedRandom
 } from "./utils.js";
 import { player, createPlayer } from './player.js';

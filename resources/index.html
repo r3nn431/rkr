@@ -48,7 +48,7 @@
           <div id="side-content">
             <div id="character" data-pages="side">
               <h3>CHARACTER</h3><br>
-              <h4>MAIN ATTRIBUTES <span>(AP: <span id="player-ap">0</span>)</span></h4>
+              <h4>MAIN ATTRIBUTES <span id="player-ap-container" class="tooltip" data-tooltip="Attribute Points">| <span id="player-ap">0</span> AP</span></h4>
               <div class="attribute-row">
                 <p class="tooltip" id="constitution-row">Constitution: <span id="player-con">0</span></p>
                 <div class="attribute-controls" data-attribute="constitution">
@@ -81,14 +81,14 @@
               <h4>MODIFIERS</h4>
               <p class="tooltip" data-tooltip="The chance to land a critical strike and the multiplier of your attack value">Critical: <span id="player-crit">0% (1.5)</span></p>
               <p class="tooltip" data-tooltip="The total value of your physical attack">Attack: <span id="player-att">0</span></p>
-              <p class="tooltip" data-tooltip="The percentage reduced from the total attack value received">Defense: <span id="player-def">0</span>%</p>
-              <p class="tooltip" data-tooltip="The percentage chance of hitting with a physical attack">Accuracy: <span id="player-acc">0</span>%</p>
-              <p class="tooltip" data-tooltip="The percentage chance to dodge an incoming attack">Evasion: <span id="player-eva">0</span>%</p>
-              <p class="tooltip" data-tooltip="The percentage chance of escaping a battle">Stealth: <span id="player-ste">0</span>%</p>
+              <p class="tooltip" data-tooltip="The percentage reduced from the total attack value received">Defense: <span id="player-def">0</span></p>
+              <p class="tooltip" data-tooltip="The percentage chance of hitting with a physical attack">Accuracy: <span id="player-acc">0</span></p>
+              <p class="tooltip" data-tooltip="The percentage chance to dodge an incoming attack">Evasion: <span id="player-eva">0</span></p>
+              <p class="tooltip" data-tooltip="The percentage chance of escaping a battle">Stealth: <span id="player-ste">0</span></p>
               <hr class="hr-icon">
               <h4>SKILLS</h4>
-              <p class="tooltip" data-tooltip="Your ability to make better consumables">Alchemy: <span id="player-alc">0</span></p>
-              <p class="tooltip" data-tooltip="Your ability to make better equipment">Craftsmanship: <span id="player-craft">0</span></p>
+              <p class="tooltip" data-tooltip="Your ability to make better consumables">Alchemy: <span id="player-alc">0</span> <span id="player-alc-xp">(0/100)</span></p>
+              <p class="tooltip" data-tooltip="Your ability to make better equipment">Craftsmanship: <span id="player-craft">0</span> <span id="player-craft-xp">(0/100)</span></p>
             </div>
             <div id="inventory" class="hidden" data-pages="side">
               <h3>INVENTORY</h3>

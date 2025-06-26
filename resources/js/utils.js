@@ -96,6 +96,23 @@ function changePnl(pnl, containers) {
     window.scrollTo({ top: 0 });
 }
 
+function getActivePnl(panels) {
+    return panels.find(panel => {
+        const isHidden = panel.classList.contains('hidden') || 
+                         panel.style.display === 'none' || 
+                         panel.style.visibility === 'hidden';
+        return !isHidden;
+    });
+}
+
+function ensureValidSidePanel() {
+    const invalidPnls = ['seller', 'recipes'];
+    const activePanel = getActivePnl(sidePnls);
+    if (!activePanel || invalidPnls.includes(activePanel.id)) {
+        changePnl(document.getElementById('character'), sidePnls);
+    }
+}
+
 function attachTooltips() {
     if (!sharedTooltip) {
         sharedTooltip = document.createElement('div');
@@ -321,6 +338,6 @@ async function setJsonFile(filepath, data) {
 }
 
 export { 
-    showToast, togglePnl, changePnl, getRandomInt, userConfirmation, formatDate, debounce, adjustReceivedData, logError, getWeightedRandom, showDamageNumber, attachTooltips,
+    showToast, togglePnl, changePnl, getRandomInt, userConfirmation, formatDate, debounce, adjustReceivedData, logError, getWeightedRandom, showDamageNumber, attachTooltips, getActivePnl, ensureValidSidePanel, 
     setStorage, getStorage, getJsonFile, setJsonFile, verifyPath
 };

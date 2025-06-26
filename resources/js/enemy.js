@@ -34,11 +34,32 @@ export class Enemy {
         this.xpReward = data.xpReward || 10;
         this.hp = data.hp || 20;
         this.maxHp = this.hp;
-        this.attack = data.attack || 10;
-        this.accuracy = data.accuracy || 80;
-        this.defense = data.defense || 0;
-        this.stealth = data.stealth || 10;
-        this.evasion = data.evasion || 5;
+
+        this.defense = {
+            value: data.defense || 0,
+            maxValue: 90,
+            tempValue: 0
+        }
+        this.attack = {
+            value: data.attack || 10,
+            maxValue: 200,
+            tempValue: 0
+        }
+        this.evasion = {
+            value: data.evasion || 5,
+            maxValue: 90,
+            tempValue: 0
+        }
+        this.stealth = {
+            value: data.stealth || 10,
+            maxValue: 100,
+            tempValue: 0
+        }
+        this.accuracy = {
+            value: data.accuracy || 90,
+            maxValue: 100,
+            tempValue: 0
+        }
         
         this.moveSpeed = data.moveSpeed || 100;
         this.attackSpeed = data.attackSpeed || 3000;
@@ -47,7 +68,6 @@ export class Enemy {
         this.criticalResistance = data.criticalResistance || 0;
         this.adjustEnemyByLevel();
 
-        this.effects = {};
         this.isDestroying = false;
         this.activeEffects = {};
 
@@ -342,15 +362,26 @@ export class Enemy {
         const template = this.getTemplate();
         this.maxHp = Math.floor(template.hp * (1 + (this.level - 1) * 0.2));
         this.hp = this.maxHp;
-        this.attack = Math.floor(template.attack * (1 + (this.level - 1) * 0.15));
         this.xpReward = Math.floor(template.xpReward * (1 + (this.level - 1) * 0.3));
+        this.attack.value = Math.floor(template.attack * (1 + (this.level - 1) * 0.15));
+    }
+
+    getAttributeValue(attribute) {
+        if (!this[attribute]) {
+            logError(new Error(`Enemy attribute "${attribute}" does not exist`));
+            return 0;
+        }
+        if (this[attribute].value > this[attribute].maxValue) {
+            this[attribute].value = this[attribute].maxValue;
+        }
+        return Math.min(Math.floor(this[attribute].value + this[attribute].tempValue), this[attribute].maxValue + this[attribute].tempValue);
     }
     
     onPlayerAttemptEscape() {
         if (this.disablePlayerEscape) {
             return false;
         }
-        const escapeChance = Math.min(90, Math.max(10, 30 + player.getAttributeValue('stealth') - this.stealth));
+        const escapeChance = Math.min(90, Math.max(10, 30 + player.getAttributeValue('stealth') - this.getAttributeValue('stealth')));
         const roll = Math.random() * 100;
         return roll <= escapeChance;
     }
@@ -370,7 +401,7 @@ export class Enemy {
     handleAttack() {
         if (!player || !player.attackReady) return;
 
-        const hitChance = Math.max(5, Math.min(95, this.evasion - player.getAttributeValue('accuracy')));
+        const hitChance = Math.max(5, Math.min(95, this.getAttributeValue('evasion') - player.getAttributeValue('accuracy')));
         const hitRoll = Math.random() * 100;
         if (hitRoll < hitChance) {
             showDialog(`${this.name} dodged your attack!`, { doLog: false });
@@ -384,7 +415,7 @@ export class Enemy {
         }
 
         let damage = player.getAttributeValue('attack');
-        const damageReduction = Math.floor(damage * this.defense / 100);
+        const damageReduction = Math.floor(damage * this.getAttributeValue('defense') / 100);
         damage = Math.max(1, damage - damageReduction);
 
         let isCritical = false;
@@ -534,10 +565,10 @@ export class Enemy {
 
     attackPlayer() {
         if (!this.isAlive()) return;
-        const hitChance = Math.max(5, Math.min(95, this.accuracy - player.getAttributeValue('evasion')));
+        const hitChance = Math.max(5, Math.min(95, this.getAttributeValue('accuracy') - player.getAttributeValue('evasion')));
         const hitRoll = Math.random() * 100;
         if (hitRoll < hitChance) {
-            let damage = this.attack;
+            let damage = this.getAttributeValue('attack');
             const damageReduction = Math.floor(damage * player.getAttributeValue('defense') / 100);
             damage = Math.max(1, damage - damageReduction);
 

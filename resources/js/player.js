@@ -6,7 +6,20 @@ import { formatDate, logError, attachTooltips, showToast } from './utils.js';
 import { enemies, clearAllEnemies } from './enemy.js';
 import { clearAllEvents } from './event.js';
 
-const attributes = ['constitution', 'strength', 'dexterity', 'arcane', 'defense', 'attack', 'evasion', 'stealth', 'accuracy', 'alchemy', 'craftsmanship', 'luck'];
+const attributes = [
+    { name: 'constitution', isPercentage: false, isSkill: false },
+    { name: 'strength', isPercentage: false, isSkill: false },
+    { name: 'dexterity', isPercentage: false, isSkill: false },
+    { name: 'arcane', isPercentage: false, isSkill: false },
+    { name: 'attack', isPercentage: false, isSkill: false },
+    { name: 'defense', isPercentage: true, isSkill: false },
+    { name: 'evasion', isPercentage: true, isSkill: false },
+    { name: 'stealth', isPercentage: true, isSkill: false },
+    { name: 'accuracy', isPercentage: true, isSkill: false },
+    { name: 'luck', isPercentage: false, isSkill: false },
+    { name: 'alchemy', isPercentage: false, isSkill: true },
+    { name: 'craftsmanship', isPercentage: false, isSkill: true }
+];
 
 export class Player {
     constructor() {
@@ -60,18 +73,14 @@ export class Player {
             maxValue: 10,
             tempValue: 0,
             xp: 0,
-            nextXp: 100,
-            level: 1,
-            maxLevel: 10
+            nextXp: 100
         };
         this.craftsmanship = {
             value: 1,
             maxValue: 10,
             tempValue: 0,
             xp: 0,
-            nextXp: 100,
-            level: 1,
-            maxLevel: 10
+            nextXp: 100
         };
         this.luck = {
             value: 1,
@@ -147,7 +156,9 @@ export class Player {
             attack: document.getElementById('player-att'),
             accuracy: document.getElementById('player-acc'),
             alchemy: document.getElementById('player-alc'),
+            alchemyXp: document.getElementById('player-alc-xp'),
             craftsmanship: document.getElementById('player-craft'),
+            craftsmanshipXp: document.getElementById('player-craft-xp'),
             crit: document.getElementById('player-crit'),
             evasion: document.getElementById('player-eva'),
             stealth: document.getElementById('player-ste'),
@@ -190,31 +201,46 @@ export class Player {
         this.elements.ap.textContent = this.attributePoints || 0;
         
         attributes.forEach(attr => {
-            if (this.elements[attr]) {
-                const value = this.getAttributeValue(attr);
-                this.elements[attr].textContent = value || 0;
-                this.elements[attr].classList.toggle('attribute-max', this[attr].value >= this[attr].maxValue);
-                if (this[attr].tempValue > 0) {
-                    this.elements[attr].style.color = 'green';
-                } else if (this[attr].tempValue < 0) {
-                    this.elements[attr].style.color = 'red';
-                } else {
-                    this.elements[attr].style.color = 'var(--text-primary)';
-                }
-            }
+            this.updateAttributeUi(attr.name);
         });
-
-        this.elements.alchemy.textContent = `${this.getAttributeValue('alchemy')} (${this.alchemy.xp}/${this.alchemy.nextXp})`;
-        this.elements.alchemy.classList.toggle('attribute-max', this.alchemy.value >= this.alchemy.maxValue);
-        
-        this.elements.craftsmanship.textContent = `${this.getAttributeValue('craftsmanship')} (${this.craftsmanship.xp}/${this.craftsmanship.nextXp})`;
-        this.elements.craftsmanship.classList.toggle('attribute-max', this.craftsmanship.value >= this.craftsmanship.maxValue);
-        
         this.elements.crit.textContent = `${this.criticalChance}% (${this.criticalMultiplier})` || 0;
         
         this.updateInventoryUI();
         this.updateAbilitiesUI();
         this.updateEffectsUI();
+    }
+
+    formatAttributeValue(value, isPercentage, isSkill) {
+        if (isPercentage) return `${value}%`;
+        if (isSkill) return `Lv ${value}`;
+        return value;
+    }
+
+    updateAttributeUi(attribute){
+        const def = attributes.find(attr => attr.name === attribute);
+        const attr = def.name;
+        if (!this.elements[attr] || !def) return;
+
+        const value = this.getAttributeValue(attr);
+        const formattedValue = this.formatAttributeValue(value, def.isPercentage, def.isSkill);
+        
+        this.elements[attr].textContent = formattedValue;
+        //this.elements.crit.textContent = `${this.criticalChance}% (${this.criticalMultiplier})` || 0;
+        
+        if (def.isSkill) {
+            this.elements[`${attr}Xp`].textContent = `| XP ${this[attr].xp}/${this[attr].nextXp}`;
+            this.elements[`${attr}Xp`].classList.toggle('attribute-max', this[attr].value >= this[attr].maxValue);
+        } else {
+            this.elements[attr].classList.toggle('attribute-max', this[attr].value >= this[attr].maxValue);
+        }
+
+        if (this[attr].tempValue > 0) {
+            this.elements[attr].style.color = 'green';
+        } else if (this[attr].tempValue < 0) {
+            this.elements[attr].style.color = 'red';
+        } else {
+            this.elements[attr].style.color = 'var(--text-primary)';
+        }
     }
 
     startPlaytime() {
@@ -259,7 +285,7 @@ export class Player {
     //@title ATTRIBUTE CALCULATIONS
     getAttributeValue(attribute) {
         if (!this[attribute]) {
-            logError(new Error(`Attribute "${attribute}" does not exist`));
+            logError(new Error(`Player attribute "${attribute}" does not exist`));
             return 0;
         }
         switch (attribute) {
@@ -296,11 +322,11 @@ export class Player {
     addSkillXp(name, amount) {
         const skill = this[name];
         skill.xp += amount;
-        while (skill.xp >= skill.nextXp && skill.level < skill.maxLevel) {
+        while (skill.xp >= skill.nextXp && skill.value < skill.maxValue) {
             skill.xp -= skill.nextXp;
-            skill.level++;
             skill.value++;
             skill.nextXp = Math.floor(skill.nextXp * 1.2);
+            this.updateAttributeUi(name);
         }
     }
 
@@ -322,30 +348,25 @@ export class Player {
         this.heal(this.maxHp);
         showDialog(`Level up! Now you're level ${this.level}!`);
         showToast(`Level ${this.level}!`, 'added', {position: 'top'});
+        this.showAttributesControls();
     }
 
     applyModifier(attribute, amount = 1, isTemporary = false) {
         if (attribute == null) {
-            attribute = attributes[Math.floor(Math.random() * attributes.length)];
+            const randomAttribute = attributes[Math.floor(Math.random() * attributes.length)];
+            attribute = randomAttribute.name;
         }
         if (isTemporary){
             this[attribute].tempValue += amount;
         } else {
             this[attribute].value += amount;
         }
-
-        if (this[attribute].value >= this[attribute].maxValue) {
-            this.elements[attribute].classList.add('attribute-max');
-        } else {
-            this.elements[attribute].classList.remove('attribute-max');
-        }
-
-        this.elements[attribute].textContent = this.getAttributeValue(attribute);
+        this.updateAttributeUi(attribute);
         switch (attribute) {
             case 'constitution': {
                 this.maxHp = this.calculateMaxHp();
                 this.hpBar.setMax(this.maxHp);
-                this.elements.defense.textContent = this.getAttributeValue('defense');
+                this.updateAttributeUi('defense');
             }
             case 'arcane': {
                 this.maxMp = this.calculateMaxMp();
@@ -353,28 +374,15 @@ export class Player {
                 break;
             }
             case 'strength': {
-                this.elements.attack.textContent = this.getAttributeValue('attack');
+                this.updateAttributeUi('attack');
                 break;
             }
             case 'dexterity': {
-                this.elements.evasion.textContent = this.getAttributeValue('evasion');
-                this.elements.stealth.textContent = this.getAttributeValue('stealth');
-                break;
-            }
-            case 'alchemy': {
-                this.elements.alchemy.textContent = `${this.getAttributeValue('alchemy')} (${this.alchemy.xp}/${this.alchemy.nextXp})`;
-                break;
-            }
-            case 'craftsmanship': {
-                this.elements.craftsmanship.textContent = `${this.getAttributeValue('craftsmanship')} (${this.craftsmanship.xp}/${this.craftsmanship.nextXp})`;
+                this.updateAttributeUi('evasion');
+                this.updateAttributeUi('stealth');
                 break;
             }
         }
-        //this.elements.crit.textContent = `${this.criticalChance}% (${this.criticalMultiplier})` || 0;
-
-        if (this[attribute].tempValue > 0) this.elements[attribute].style.color = 'green';
-        else if (this[attribute].tempValue < 0) this.elements[attribute].style.color = 'red';
-        else this.elements[attribute].style.color = 'var(--text-primary)';
     }
 
     increaseAttribute(attribute) {
