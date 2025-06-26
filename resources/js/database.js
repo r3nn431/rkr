@@ -10,7 +10,7 @@ export const enemies = [
         xpReward: 8,
         hp: 15,
         attack: 10,
-        defense: 1,
+        defense: 0,
         ability: {},
         type: 'MUTANT',
         moveType: 'MIXED',
@@ -82,10 +82,7 @@ export const abilities = [
             type: null,
             amount: 50
         },
-        source: "Obtained from killing 50 enemies",
-        effects: [
-            { stat: "ACCURACY", value: 10 }
-        ]
+        source: "Obtained from killing 50 enemies"
     },
     {
         id: "power-protect",
@@ -94,7 +91,7 @@ export const abilities = [
         rarity: 4,
         isPassive: false,
         cooldown: 10000,
-        costValue: 20,
+        costValue: 2,
         costType: "MP",
         target: "SELF",
         usage: "ANY",
@@ -108,7 +105,7 @@ export const abilities = [
         rarity: 3,
         isPassive: false,
         cooldown: 5000,
-        costValue: 15,
+        costValue: 2,
         costType: "MP",
         target: "ENEMY",
         usage: "COMBAT",
@@ -146,10 +143,11 @@ export const effects = [
         id: "effect-protected",
         name: "Protected",
         description: "Reduces damage taken by 40%",
-        usage: "ON_HIT",
+        usage: "MODIFIER",
         duration: 10000,
         hasDuration: true,
-        value: 0.4,
+        stat: "defense",
+        value: 40,
         icon: "icon-shield",
         isDebuff: false,
         target: "ANY"

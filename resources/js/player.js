@@ -184,33 +184,34 @@ export class Player {
     updateStats() {
         document.getElementById('current-startdate').textContent = formatDate(this.startDate, true);
         this.elements.title.textContent = this.title || 'Player';
-        this.elements.constitution.textContent = this.getAttributeValue('constitution') || 0;
-        this.elements.constitution.classList.toggle('attribute-max', this.constitution.value >= this.constitution.maxValue);
-        this.elements.strength.textContent = this.getAttributeValue('strength') || 0;
-        this.elements.strength.classList.toggle('attribute-max', this.strength.value >= this.strength.maxValue);
-        this.elements.dexterity.textContent = this.getAttributeValue('dexterity') || 0;
-        this.elements.dexterity.classList.toggle('attribute-max', this.dexterity.value >= this.dexterity.maxValue);
-        this.elements.arcane.textContent = this.getAttributeValue('arcane') || 0;
-        this.elements.arcane.classList.toggle('attribute-max', this.arcane.value >= this.arcane.maxValue);
-        this.elements.defense.textContent = this.getDefenseValue() || 0;
-        this.elements.defense.classList.toggle('attribute-max', this.defense.value >= this.defense.maxValue);
-        this.elements.attack.textContent = this.getAttackValue() || 0;
-        this.elements.attack.classList.toggle('attribute-max', this.attack.value >= this.attack.maxValue);
-        this.elements.evasion.textContent = this.getEvasionValue() || 0;
-        this.elements.evasion.classList.toggle('attribute-max', this.evasion.value >= this.evasion.maxValue);
-        this.elements.stealth.textContent = this.getStealthValue() || 0;
-        this.elements.stealth.classList.toggle('attribute-max', this.stealth.value >= this.stealth.maxValue);
-        this.elements.accuracy.textContent = this.getAttributeValue('accuracy') || 0;
-        this.elements.accuracy.classList.toggle('attribute-max', this.accuracy.value >= this.accuracy.maxValue);
-        this.elements.alchemy.textContent = `${this.getAttributeValue('alchemy')} (${this.alchemy.xp}/${this.alchemy.nextXp})` || 0;
-        this.elements.alchemy.classList.toggle('attribute-max', this.alchemy.value >= this.alchemy.maxValue);
-        this.elements.craftsmanship.textContent = `${this.getAttributeValue('craftsmanship')} (${this.craftsmanship.xp}/${this.craftsmanship.nextXp})` || 0;
-        this.elements.craftsmanship.classList.toggle('attribute-max', this.craftsmanship.value >= this.craftsmanship.maxValue);
-        this.elements.crit.textContent = `${this.criticalChance}% (${this.criticalMultiplier})` || 0;
         this.elements.kills.textContent = this.getTotalKills() || 0;
         this.elements.playtime.textContent = this.formatPlaytime() || '00:00:00';
         this.elements.distance.textContent = this.distance || 0;
         this.elements.ap.textContent = this.attributePoints || 0;
+        
+        attributes.forEach(attr => {
+            if (this.elements[attr]) {
+                const value = this.getAttributeValue(attr);
+                this.elements[attr].textContent = value || 0;
+                this.elements[attr].classList.toggle('attribute-max', this[attr].value >= this[attr].maxValue);
+                if (this[attr].tempValue > 0) {
+                    this.elements[attr].style.color = 'green';
+                } else if (this[attr].tempValue < 0) {
+                    this.elements[attr].style.color = 'red';
+                } else {
+                    this.elements[attr].style.color = 'var(--text-primary)';
+                }
+            }
+        });
+
+        this.elements.alchemy.textContent = `${this.getAttributeValue('alchemy')} (${this.alchemy.xp}/${this.alchemy.nextXp})`;
+        this.elements.alchemy.classList.toggle('attribute-max', this.alchemy.value >= this.alchemy.maxValue);
+        
+        this.elements.craftsmanship.textContent = `${this.getAttributeValue('craftsmanship')} (${this.craftsmanship.xp}/${this.craftsmanship.nextXp})`;
+        this.elements.craftsmanship.classList.toggle('attribute-max', this.craftsmanship.value >= this.craftsmanship.maxValue);
+        
+        this.elements.crit.textContent = `${this.criticalChance}% (${this.criticalMultiplier})` || 0;
+        
         this.updateInventoryUI();
         this.updateAbilitiesUI();
         this.updateEffectsUI();
@@ -261,24 +262,22 @@ export class Player {
             logError(new Error(`Attribute "${attribute}" does not exist`));
             return 0;
         }
-        if (this[attribute].value > this[attribute].maxValue) this[attribute].value = this[attribute].maxValue;
-        return Math.min(Math.floor(this[attribute].value + this[attribute].tempValue), this[attribute].maxValue + this[attribute].tempValue);
-    }
-
-    getDefenseValue(){
-        return Math.min(Math.floor(0.5 * this.getAttributeValue('constitution') + this.getAttributeValue('defense')), this.defense.maxValue);
-    }
-
-    getAttackValue(){
-        return Math.min(Math.floor(2 * this.getAttributeValue('strength') + this.getAttributeValue('attack') + 5), this.attack.maxValue);
-    }
-
-    getEvasionValue(){
-        return Math.min(Math.floor(0.5 * this.getAttributeValue('dexterity') + 0.3 * this.getAttributeValue('luck') + this.getAttributeValue('evasion')), this.evasion.maxValue);
-    }
-
-    getStealthValue(){
-        return Math.min(Math.floor(0.7 * this.getAttributeValue('dexterity') + 0.3 * this.getAttributeValue('luck') + this.getAttributeValue('stealth')), this.stealth.maxValue);
+        switch (attribute) {
+            case 'defense': 
+                return Math.min(Math.floor((0.5 * (this.constitution.value + this.constitution.tempValue)) + (this.defense.value + this.defense.tempValue)), this.defense.maxValue);
+            case 'attack':
+                return Math.min(Math.floor((2 * (this.strength.value + this.strength.tempValue)) + (this.attack.value + this.attack.tempValue) + 5), this.attack.maxValue);
+            case 'evasion':
+                return Math.min(Math.floor(0.5 * (this.dexterity.value + this.dexterity.tempValue) + 0.3 * (this.luck.value + this.luck.tempValue) + (this.evasion.value + this.evasion.tempValue)), this.evasion.maxValue);
+            case 'stealth':
+                return Math.min(Math.floor(0.7 * (this.dexterity.value + this.dexterity.tempValue) + 0.3 * (this.luck.value + this.luck.tempValue) + (this.stealth.value + this.stealth.tempValue)), this.stealth.maxValue);
+            default:{
+                if (this[attribute].value > this[attribute].maxValue) {
+                    this[attribute].value = this[attribute].maxValue;
+                }
+                return Math.min(Math.floor(this[attribute].value + this[attribute].tempValue), this[attribute].maxValue + this[attribute].tempValue);
+            }
+        }
     }
 
     calculateMaxHp() {
@@ -322,6 +321,7 @@ export class Player {
         this.xpToNextLevel = this.calculateXpToNextLevel();
         this.heal(this.maxHp);
         showDialog(`Level up! Now you're level ${this.level}!`);
+        showToast(`Level ${this.level}!`, 'added', {position: 'top'});
     }
 
     applyModifier(attribute, amount = 1, isTemporary = false) {
@@ -345,32 +345,20 @@ export class Player {
             case 'constitution': {
                 this.maxHp = this.calculateMaxHp();
                 this.hpBar.setMax(this.maxHp);
+                this.elements.defense.textContent = this.getAttributeValue('defense');
             }
-            case 'defense': {
-                this.elements.defense.textContent = this.getDefenseValue();
-                break;
-            }
-            case 'arcane':{
+            case 'arcane': {
                 this.maxMp = this.calculateMaxMp();
                 this.mpBar.setMax(this.maxMp);
                 break;
             }
-            case 'strength':
-            case 'attack': {
-                this.elements.attack.textContent = this.getAttackValue();
+            case 'strength': {
+                this.elements.attack.textContent = this.getAttributeValue('attack');
                 break;
             }
             case 'dexterity': {
-                this.elements.evasion.textContent = this.getEvasionValue();
-                this.elements.stealth.textContent = this.getStealthValue();
-                break;
-            }
-            case 'evasion': {
-                this.elements.evasion.textContent = this.getEvasionValue();
-                break;
-            }
-            case 'stealth': {
-                this.elements.stealth.textContent = this.getStealthValue();
+                this.elements.evasion.textContent = this.getAttributeValue('evasion');
+                this.elements.stealth.textContent = this.getAttributeValue('stealth');
                 break;
             }
             case 'alchemy': {
@@ -426,14 +414,19 @@ export class Player {
         this.hpBar.setCurrent(this.hp);
     }
 
-    async startAttackCooldown() {
+    reduceMp(amount) {
+        this.mp = Math.max(0, this.mp - amount);
+        this.mpBar.setCurrent(this.mp);
+    }
+
+    startAttackCooldown() {
         this.attackReady = false;
         enemies.forEach(enemy => {
             if (enemy !== null) enemy.attackButton.disabled = true;
         });
         this.attackCooldown = this.attackSpeed;
         this.attackCooldownBar.setCurrent(0);
-        const cooldownInterval = setInterval( async () => {
+        const cooldownInterval = setInterval( () => {
             this.attackCooldown -= 1000;
             if (this.attackCooldown <= 0) {
                 if (player === null) return;
@@ -525,17 +518,19 @@ export class Player {
             remainingCooldown: 0,
             usedThisBattle: false
         };
-        this.applyAbilityEffects(id);
+        if (template.isPassive) this.applyAbilityEffects(id);
         this.updateAbilitiesUI();
         showToast(`New ${template.isPassive ? 'passive' : 'power'} added!`, `${template.isPassive && template.isCurse ? 'debuff' : 'buff'}`, {targetElement: document.getElementById('btn-abilities')});
         return true;
     }
     
-    applyAbilityEffects(id) {
-        const ability = this.abilities[id];
-        if (!ability || !ability.isPassive) return;
-        const template = db.abilities.find(p => p.id === id);
-        // TO-DO
+    applyAbilityEffects(passive) {
+        switch(passive){
+            case 'passive-killall_50': {
+                this.applyModifier('accuracy', 2);
+                break;
+            }
+        }
     }
 
     startAbilityCooldown(abilityId) {
@@ -577,7 +572,34 @@ export class Player {
                 break;
             }
         }
-        //if (ability.costType) {}
+        //if (ability.useCondition) {}
+        if (!this.verifyPowerCost(ability)) {
+            showDialog('You can not pay the cost for this power.', {doLog: false});
+            return false;
+        }
+        return true;
+    }
+
+    verifyPowerCost(ability) {
+        if (!ability.costValue) return true;
+        switch (ability.costType) {
+            case 'HP': {
+                if (this.hp < ability.costValue) return false;
+                break;
+            }
+            case 'MP': {
+                if (this.mp < ability.costValue) return false;
+                break;
+            }
+            case 'RUNE': {
+                if (this.getItemQuantity('currency-rune') < ability.costValue) return false;
+                break;
+            }
+            default: {
+                logError(new Error(`Unknown cost type: ${ability.costType}`));
+                return false;
+            }
+        }
         return true;
     }
 
@@ -627,11 +649,26 @@ export class Player {
             ability.remainingCooldown = Date.now() + ability.cooldown;
             this.startAbilityCooldown(ability.id);
         }
+        switch (ability.costType) {
+            case 'HP': {
+                this.takeDamage(ability.costValue, ability.name);
+                break;
+            }
+            case 'MP': {
+                this.reduceMp(ability.costValue);
+                break;
+            }
+            case 'RUNE': {
+                this.removeItem('currency-rune', ability.costValue);
+                break;
+            }
+        }
     }
 
     applyAbilityToEnemy(abilityId, enemy) {
         const ability = this.abilities[abilityId];
         if (!ability || !ability.effectId) return;
+        if (!this.canUseAbility(ability)) return false;
         if (ability.effectId){
             if (enemy.hasEffect(ability.effectId)) {
                 showDialog(`${enemy.name} is already affected by this effect.`, {doLog: false});
@@ -841,6 +878,9 @@ export class Player {
         };
         this.activeEffects[effectId] = effect;
         this.startEffectTimer(effectId);
+        if (template.usage === "MODIFIER") {
+            this.applyModifier(template.stat, template.value, true);
+        }
         this.updateEffectsUI();
         showToast(`New effect added!`, `${template.isDebuff ? 'debuff' : 'buff'}`, {targetElement: document.getElementById('btn-effects')});
         return true;
@@ -856,6 +896,9 @@ export class Player {
             clearInterval(effect.interval);
         }
         delete this.activeEffects[effectId];
+        if (effect.usage === "MODIFIER") {
+            this.applyModifier(effect.stat, -effect.value, true);
+        }
         this.updateEffectsUI();
         showToast(`Effect removed!`, `${effect.isDebuff ? 'debuff' : 'buff'}`, {targetElement: document.getElementById('btn-effects')});
         return true;

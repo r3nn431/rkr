@@ -350,7 +350,7 @@ export class Enemy {
         if (this.disablePlayerEscape) {
             return false;
         }
-        const escapeChance = Math.min(90, Math.max(10, 30 + player.getStealthValue() - this.stealth));
+        const escapeChance = Math.min(90, Math.max(10, 30 + player.getAttributeValue('stealth') - this.stealth));
         const roll = Math.random() * 100;
         return roll <= escapeChance;
     }
@@ -383,10 +383,9 @@ export class Enemy {
             return;
         }
 
-        //let damage = Math.max(1, player.getAttackValue() - this.defense || 0);
-        let damage = player.getAttackValue();
-        const damageReduction = Math.min(0, this.defense / (this.defense + 100));
-        damage = Math.max(0, Math.floor(damage * (1 - damageReduction)));
+        let damage = player.getAttributeValue('attack');
+        const damageReduction = Math.floor(damage * this.defense / 100);
+        damage = Math.max(1, damage - damageReduction);
 
         let isCritical = false;
         const critChance = Math.max(0, (player.criticalChance || 0) - this.criticalResistance || 0);
@@ -484,7 +483,7 @@ export class Enemy {
             } else {
                 this.element.classList.add('enemy-dying');
             }
-            setTimeout(async () => {
+            setTimeout( () => {
                 this.element?.parentNode?.removeChild(this.element);
                 const index = enemies.indexOf(this);
                 if (index !== -1) {
@@ -535,14 +534,12 @@ export class Enemy {
 
     attackPlayer() {
         if (!this.isAlive()) return;
-        const hitChance = Math.max(5, Math.min(95, this.accuracy - player.getEvasionValue()));
+        const hitChance = Math.max(5, Math.min(95, this.accuracy - player.getAttributeValue('evasion')));
         const hitRoll = Math.random() * 100;
         if (hitRoll < hitChance) {
-            //let damage = Math.max(1, this.attack - player.getDefenseValue() || 0);
             let damage = this.attack;
-            const defense = player.getDefenseValue();
-            const damageReduction = Math.min(0, defense / (defense + 100));
-            damage = Math.max(0, Math.floor(damage * (1 - damageReduction)));
+            const damageReduction = Math.floor(damage * player.getAttributeValue('defense') / 100);
+            damage = Math.max(1, damage - damageReduction);
 
             let isCritical = false;
             const critChance = Math.max(0, (this.criticalChance || 0) - player.criticalResistance || 0);
