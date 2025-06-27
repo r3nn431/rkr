@@ -106,6 +106,7 @@ function getActivePnl(panels) {
 }
 
 function ensureValidSidePanel() {
+    const sidePnls = Array.from(document.querySelectorAll('[data-pages="side"]'));
     const invalidPnls = ['seller', 'recipes'];
     const activePanel = getActivePnl(sidePnls);
     if (!activePanel || invalidPnls.includes(activePanel.id)) {

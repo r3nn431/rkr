@@ -2,9 +2,7 @@
 import * as db from './database.js';
 import ProgressBar from './progressBar.js';
 import { player } from './player.js';
-import { 
-    config, playSFX, showDialog 
-} from './config.js';
+import { config, playSFX, showDialog } from './config.js';
 import { attachTooltips, showDamageNumber } from './utils.js';
 
 const gameContainer = document.getElementById('game-container');

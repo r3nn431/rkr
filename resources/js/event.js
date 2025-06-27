@@ -1,6 +1,6 @@
 // js/event.js
 import * as db from './database.js';
-import { getWeightedRandom, logError, showDamageNumber } from './utils.js';
+import { ensureValidSidePanel, getWeightedRandom, logError, showDamageNumber } from './utils.js';
 import { Enemy, enemies, clearAllEnemies, callEnemy } from './enemy.js';
 import { config, playSFX, showDialog } from './config.js';
 import { player } from './player.js';
@@ -330,6 +330,7 @@ export class Event {
         if (!events.some(e => e.templateId === 'trap')) {
             document.getElementById('btn-advance').disabled = false;
         }
+        ensureValidSidePanel();
     }
     
     dropLoot() {

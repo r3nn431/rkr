@@ -2,7 +2,7 @@
 import * as db from './database.js';
 import ProgressBar from './progressBar.js';
 import { playSFX, showDialog } from './config.js';
-import { formatDate, logError, attachTooltips, showToast } from './utils.js';
+import { formatDate, logError, attachTooltips, showToast, ensureValidSidePanel } from './utils.js';
 import { enemies, clearAllEnemies } from './enemy.js';
 import { clearAllEvents } from './event.js';
 
@@ -391,6 +391,7 @@ export class Player {
         this.applyModifier(attribute, 1);
         this.attributePoints -= 1;
         this.elements.ap.textContent = this.attributePoints;
+        this.showAttributesControls();
         return true;
     }
 
@@ -617,15 +618,22 @@ export class Player {
         if (!this.canUseAbility(ability)) return false;
         switch(ability.target) {
             case "SELF":{
-                const canReceiveEffect = ability.effects.every(effectId => this.canReceiveEffect(effectId));
-                if (!canReceiveEffect) {
-                    showDialog(`This power won't have any effect.`, {doLog: false});
-                    return false;
+                if (ability.effects && ability.effects.length > 0) {
+                    const canReceiveEffect = ability.effects.every(effectId => this.canReceiveEffect(effectId));
+                    if (!canReceiveEffect) {
+                        showDialog(`This power won't have any effect.`, {doLog: false});
+                        return false;
+                    }
+                    ability.effects.forEach(effectId => {
+                        if (!this.canReceiveEffect(effectId)) return false;
+                        this.addEffect(effectId, 'player');
+                    });
                 }
-                ability.effects.forEach(effectId => {
-                    if (!this.canReceiveEffect(effectId)) return false;
-                    this.addEffect(effectId, 'player');
-                });
+
+                if (ability.damage && ability.damage > 0) {
+                    this.heal(ability.damage);
+                }
+                
                 showDialog(`Used ${ability.name}!`);
                 break;
             }
@@ -1215,6 +1223,7 @@ function gameOver(causeOfDeath) {
     clearAllEvents();
     player.isDead = true;
     document.getElementById('btn-advance').disabled = true;
+    ensureValidSidePanel();
 }
 
 let player = null;

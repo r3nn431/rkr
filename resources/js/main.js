@@ -1,15 +1,13 @@
 // js/main.js
 import * as db from './database.js';
+import { config, CONFIG_PATH, settingsElements, audioBGM, playBGM, playSFX, showDialog } from './config.js';
 import { 
-    config, CONFIG_PATH, settingsElements, audioBGM, playBGM, playSFX, showDialog
-} from './config.js';
-import { 
-    showToast, togglePnl, changePnl, userConfirmation, formatDate, debounce, adjustReceivedData, logError, attachTooltips, getActivePnl, 
-    setStorage, getStorage, getJsonFile, setJsonFile, verifyPath, getWeightedRandom
+    showToast, togglePnl, changePnl, userConfirmation, formatDate, debounce, adjustReceivedData, logError, attachTooltips, getActivePnl, getWeightedRandom, ensureValidSidePanel, 
+    setStorage, getStorage, getJsonFile, setJsonFile, verifyPath
 } from "./utils.js";
 import { player, createPlayer } from './player.js';
-import { Enemy, enemies, clearAllEnemies, callEnemy } from './enemy.js';
-import { Event, events, clearAllEvents, callEvent } from './event.js';
+import { enemies, clearAllEnemies, callEnemy } from './enemy.js';
+import { events, clearAllEvents, callEvent } from './event.js';
 
 // NEUTRALINO FUNCTIONS
 async function onWindowClose() {
@@ -272,6 +270,7 @@ function advance() {
     clearAllEvents();
     player.resetBattle();
     document.getElementById('btn-advance').disabled = true;
+    ensureValidSidePanel();
 
     imgBackground.classList.remove('walk-effect-up', 'walk-effect-down');
     if(stepToggle) {
