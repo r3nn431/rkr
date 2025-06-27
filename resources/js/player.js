@@ -633,7 +633,7 @@ export class Player {
                 this.startTargetSelection(abilityId);
                 return false;
             }
-            case "ALL_ENEMIES":{
+            case "ALL_ENEMIES": {
                 if (ability.effects && ability.effects.length > 0) {
                     const canApplyToAny = enemies.some(enemy => ability.effects.some(effectId => enemy.canReceiveEffect(effectId)));
                     if (!canApplyToAny) {
@@ -648,8 +648,16 @@ export class Player {
                         });
                     });
                     //showDialog(`Used ${ability.name} on ${affectedCount === enemies.length ? 'all' : `${affectedCount}`} enem${affectedCount !== 1 ? 'ies' : 'y'}!`);
-                    showDialog(`Used ${ability.name}!`);
                 }
+
+                if (ability.damage && ability.damage > 0) {
+                    enemies.forEach(enemy => {
+                        const isDead = enemy.takeDamage(ability.damage, ability.name);
+                        if (isDead) enemy.onDeath();
+                    });
+                }
+
+                showDialog(`Used ${ability.name}!`);
                 break;
             }
             default: return false;
@@ -685,7 +693,7 @@ export class Player {
         if (!ability) return false;
         if (!this.canUseAbility(ability)) return false;
         
-        if (ability.effects || ability.effects.length > 0) {
+        if (ability.effects && ability.effects.length > 0) {
             const applicableEffects = ability.effects.filter(effectId => 
                 enemy.canReceiveEffect(effectId)
             );
@@ -697,7 +705,12 @@ export class Player {
                 enemy.addEffect(effectId, 'player');
             });
         }
-        
+
+        if (ability.damage && ability.damage > 0) {
+            const isDead = enemy.takeDamage(ability.damage, ability.name);
+            if (isDead) enemy.onDeath();
+        }
+
         showDialog(`Used ${ability.name}!`);
         this.reducePowerCost(abilityId);
         return true;
@@ -714,7 +727,8 @@ export class Player {
         const ability = this.abilities[abilityId];
         if (!ability || ability.target !== "ENEMY") return;
 
-        const validTargets = enemies.filter(enemy => ability.effects.some(effectId => enemy.canReceiveEffect(effectId)));
+        const validTargets = ability.effects && ability.effects.length > 0 ? 
+            enemies.filter(enemy => ability.effects.some(effectId => enemy.canReceiveEffect(effectId))) : [...enemies];
         if (validTargets.length === 0) {
             showDialog("No valid targets for this ability!", {doLog: false});
             return;
