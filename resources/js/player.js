@@ -2,100 +2,52 @@
 import * as db from './database.js';
 import ProgressBar from './progressBar.js';
 import { playSFX, showDialog } from './config.js';
-import { formatDate, logError, attachTooltips, showToast, ensureValidSidePanel } from './utils.js';
+import { formatDate, logError, attachTooltips, showToast, ensureValidSidePanel, getWeightedRandom } from './utils.js';
 import { enemies, clearAllEnemies } from './enemy.js';
 import { clearAllEvents } from './event.js';
 
 const attributes = [
-    { name: 'constitution', isPercentage: false, isSkill: false },
-    { name: 'strength', isPercentage: false, isSkill: false },
-    { name: 'dexterity', isPercentage: false, isSkill: false },
-    { name: 'arcane', isPercentage: false, isSkill: false },
-    { name: 'attack', isPercentage: false, isSkill: false },
-    { name: 'defense', isPercentage: true, isSkill: false },
-    { name: 'evasion', isPercentage: true, isSkill: false },
-    { name: 'stealth', isPercentage: true, isSkill: false },
-    { name: 'accuracy', isPercentage: true, isSkill: false },
-    { name: 'luck', isPercentage: false, isSkill: false },
-    { name: 'alchemy', isPercentage: false, isSkill: true },
-    { name: 'craftsmanship', isPercentage: false, isSkill: true }
+    { name: 'constitution', isPercentage: false, isSkill: false, rarity: 1 },
+    { name: 'strength', isPercentage: false, isSkill: false, rarity: 1 },
+    { name: 'dexterity', isPercentage: false, isSkill: false, rarity: 1 },
+    { name: 'arcane', isPercentage: false, isSkill: false, rarity: 1 },
+    { name: 'attack', isPercentage: false, isSkill: false, rarity: 1 },
+    { name: 'defense', isPercentage: true, isSkill: false, rarity: 0 },
+    { name: 'evasion', isPercentage: true, isSkill: false, rarity: 0 },
+    { name: 'stealth', isPercentage: true, isSkill: false, rarity: 0 },
+    { name: 'accuracy', isPercentage: true, isSkill: false, rarity: 0 },
+    { name: 'criticalChance', isPercentage: true, isSkill: false, rarity: 0 },
+    { name: 'criticalMultiplier', isPercentage: false, isSkill: false, rarity: 0 },
+    { name: 'criticalResistance', isPercentage: true, isSkill: false, rarity: 0 },
+    { name: 'luck', isPercentage: false, isSkill: false, rarity: 0 },
+    { name: 'alchemy', isPercentage: false, isSkill: true, rarity: 0 },
+    { name: 'craftsmanship', isPercentage: false, isSkill: true, rarity: 0 }
 ];
 
 export class Player {
     constructor() {
         this.title = 'Newborn';
-        this.attributePoints = 0;
+        this.attributePoints = 2;
         // ATTRIBUTES
-        this.constitution = { 
-            value: 1,
-            maxValue: 100,
-            tempValue: 0
-        };
-        this.strength = { 
-            value: 1,
-            maxValue: 100,
-            tempValue: 0
-        };
-        this.dexterity = { 
-            value: 1,
-            maxValue: 100,
-            tempValue: 0
-        };
-        this.arcane = { 
-            value: 1,
-            maxValue: 100,
-            tempValue: 0
-        };
-        // CALCULATED STATS
-        this.defense = {
-            value: 0,
-            maxValue: 90,
-            tempValue: 0
-        }
-        this.attack = {
-            value: 0,
-            maxValue: 200,
-            tempValue: 0
-        }
-        this.evasion = {
-            value: 0,
-            maxValue: 90,
-            tempValue: 0
-        }
-        this.stealth = {
-            value: 0,
-            maxValue: 100,
-            tempValue: 0
-        }
+        this.constitution = { value: 1, minValue: 1, maxValue: 100, tempValue: 0 };
+        this.strength = { value: 1, minValue: 1, maxValue: 100, tempValue: 0 };
+        this.dexterity = { value: 1, minValue: 1, maxValue: 100, tempValue: 0 };
+        this.arcane = { value: 1, minValue: 1, maxValue: 100, tempValue: 0 };
+        // MODIFIERS
+        this.defense = { value: 0, minValue: 0, maxValue: 90, tempValue: 0 };
+        this.attack = { value: 0, minValue: 0, maxValue: 200, tempValue: 0 };
+        this.evasion = { value: 0, minValue: 0, maxValue: 90, tempValue: 0 };
+        this.stealth = { value: 0, minValue: 0, maxValue: 100, tempValue: 0 };
+        this.luck = { value: 1, minValue: 1, maxValue: 50, tempValue: 0 };
+        this.accuracy = { value: 90, minValue: 5, maxValue: 100, tempValue: 0 };
+        this.criticalChance = { value: 5, minValue: 0, maxValue: 100, tempValue: 0 };
+        this.criticalMultiplier = { value: 2, minValue: 2, maxValue: 10, tempValue: 0 };
+        this.criticalResistance = { value: 0, minValue: 0, maxValue: 100, tempValue: 0 };
+        this.attackSpeed = { value: 3000, minValue: 500, maxValue: 10000, tempValue: 0 };
+        // SKILLS
+        this.alchemy = { value: 1, minValue: 1, maxValue: 10, tempValue: 0, xp: 0, nextXp: 100 };
+        this.craftsmanship = { value: 1, minValue: 1, maxValue: 10, tempValue: 0, xp: 0, nextXp: 100 };
         // OTHERS
-        this.alchemy = {
-            value: 1,
-            maxValue: 10,
-            tempValue: 0,
-            xp: 0,
-            nextXp: 100
-        };
-        this.craftsmanship = {
-            value: 1,
-            maxValue: 10,
-            tempValue: 0,
-            xp: 0,
-            nextXp: 100
-        };
-        this.luck = {
-            value: 1,
-            maxValue: 50,
-            tempValue: 0
-        }
-        this.accuracy = {
-            value: 90,
-            maxValue: 100,
-            tempValue: 0
-        }
-        this.criticalChance = 5;
-        this.criticalMultiplier = 1.5;
-        this.criticalResistance = 0;
-        this.attackSpeed = 3000;
         this.maxHp = this.calculateMaxHp();
         this.hp = this.maxHp;
         this.level = 1;
@@ -130,10 +82,10 @@ export class Player {
             id: 'player-bar-attackcd',
             containerId: 'player-attackcd-container',
             min: 0,
-            max: this.attackSpeed,
-            current: this.attackSpeed,
+            max: this.getAttributeValue('attackSpeed'),
+            current: this.getAttributeValue('attackSpeed'),
             color: 'var(--cooldown)',
-            textTemplate: () => this.attackReady ? 'READY' : `COOLDOWN ${Math.ceil(this.attackCooldown/1000)}s`,
+            textTemplate: () => this.attackReady ? `ATTACK READY (CD: ${Math.ceil(this.getAttributeValue('attackSpeed')/1000)}s)` : `COOLDOWN ${Math.ceil(this.attackCooldown/1000)}s`,
             enableLowEffect: false
         });
         this.mpBar = new ProgressBar({
@@ -159,7 +111,8 @@ export class Player {
             alchemyXp: document.getElementById('player-alc-xp'),
             craftsmanship: document.getElementById('player-craft'),
             craftsmanshipXp: document.getElementById('player-craft-xp'),
-            crit: document.getElementById('player-crit'),
+            criticalChance: document.getElementById('player-crit-chance'),
+            criticalMultiplier: document.getElementById('player-crit-mult'),
             evasion: document.getElementById('player-eva'),
             stealth: document.getElementById('player-ste'),
             ap: document.getElementById('player-ap'),
@@ -203,7 +156,7 @@ export class Player {
         attributes.forEach(attr => {
             this.updateAttributeUi(attr.name);
         });
-        this.elements.crit.textContent = `${this.criticalChance}% (${this.criticalMultiplier})` || 0;
+        //this.elements.crit.textContent = `${this.criticalChance}% (${this.criticalMultiplier})` || 0;
         
         this.updateInventoryUI();
         this.updateAbilitiesUI();
@@ -353,13 +306,16 @@ export class Player {
 
     applyModifier(attribute, amount = 1, isTemporary = false) {
         if (attribute == null) {
-            const randomAttribute = attributes[Math.floor(Math.random() * attributes.length)];
+            //const randomAttribute = attributes[Math.floor(Math.random() * attributes.length)];
+            const randomAttribute = getWeightedRandom(attributes);
             attribute = randomAttribute.name;
         }
         if (isTemporary){
             this[attribute].tempValue += amount;
         } else {
             this[attribute].value += amount;
+            if (this[attribute].value >= this[attribute].maxValue) this[attribute].value = this[attribute].maxValue;
+            if (this[attribute].value <= this[attribute].minValue) this[attribute].value = this[attribute].minValue;
         }
         this.updateAttributeUi(attribute);
         switch (attribute) {
@@ -433,20 +389,20 @@ export class Player {
         enemies.forEach(enemy => {
             if (enemy !== null) enemy.attackButton.disabled = true;
         });
-        this.attackCooldown = this.attackSpeed;
+        this.attackCooldown = this.getAttributeValue('attackSpeed');
         this.attackCooldownBar.setCurrent(0);
         const cooldownInterval = setInterval( () => {
             this.attackCooldown -= 1000;
             if (this.attackCooldown <= 0) {
                 if (player === null) return;
                 this.attackReady = true;
-                this.attackCooldownBar.setCurrent(this.attackSpeed);
+                this.attackCooldownBar.setCurrent(this.getAttributeValue('attackSpeed'));
                 clearInterval(cooldownInterval);
                 enemies.forEach(enemy => {
                     if (enemy !== null) enemy.attackButton.disabled = false;
                 });
             } else {
-                this.attackCooldownBar.setCurrent(this.attackSpeed - this.attackCooldown);
+                this.attackCooldownBar.setCurrent(this.getAttributeValue('attackSpeed') - this.attackCooldown);
             }
         }, 1000);
     }

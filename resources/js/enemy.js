@@ -33,39 +33,18 @@ export class Enemy {
         this.hp = data.hp || 20;
         this.maxHp = this.hp;
 
-        this.defense = {
-            value: data.defense || 0,
-            maxValue: 90,
-            tempValue: 0
-        }
-        this.attack = {
-            value: data.attack || 10,
-            maxValue: 200,
-            tempValue: 0
-        }
-        this.evasion = {
-            value: data.evasion || 5,
-            maxValue: 90,
-            tempValue: 0
-        }
-        this.stealth = {
-            value: data.stealth || 10,
-            maxValue: 100,
-            tempValue: 0
-        }
-        this.accuracy = {
-            value: data.accuracy || 90,
-            maxValue: 100,
-            tempValue: 0
-        }
-        
-        this.moveSpeed = data.moveSpeed || 100;
-        this.attackSpeed = data.attackSpeed || 3000;
-        this.criticalChance = data.criticalChance || 0;
-        this.criticalMultiplier = data.criticalMultiplier || 1.5;
-        this.criticalResistance = data.criticalResistance || 0;
-        this.adjustEnemyByLevel();
+        this.attack = { value: data.attack || 10, minValue: 1, maxValue: 200, tempValue: 0 };
+        this.defense = { value: data.defense || 0, minValue: 0, maxValue: 90, tempValue: 0 };
+        this.evasion = { value: data.evasion || 5, minValue: 0, maxValue: 90, tempValue: 0 };
+        this.stealth = { value: data.stealth || 10, minValue: 0, maxValue: 100, tempValue: 0 };
+        this.accuracy = { value: data.accuracy || 90, minValue: 0, maxValue: 100, tempValue: 0 };
+        this.criticalChance = { value: data.criticalChance || 5, minValue: 0, maxValue: 100, tempValue: 0 };
+        this.criticalMultiplier = { value: data.criticalMultiplier || 2, minValue: 2, maxValue: 10, tempValue: 0 };
+        this.criticalResistance = { value: data.criticalResistance || 0, minValue: 0, maxValue: 100, tempValue: 0 };
+        this.moveSpeed = { value: data.moveSpeed || 100, minValue: 1, maxValue: 1000, tempValue: 0 };
+        this.attackSpeed = { value: data.attackSpeed || 3000, minValue: 500, maxValue: 20000, tempValue: 0 };
 
+        this.adjustEnemyByLevel();
         this.isDestroying = false;
         this.activeEffects = {};
 
@@ -147,7 +126,7 @@ export class Enemy {
             containerId: attackCdContainerId,
             containerClass: 'enemy-pb',
             min: 0,
-            max: this.attackSpeed,
+            max: this.getAttributeValue('attackSpeed'),
             current: 0,
             color: 'var(--cooldown)',
             showText: true,
@@ -213,7 +192,7 @@ export class Enemy {
                 break;
             }
             case 'RANDOM':{
-                this.nextRandomMove = Date.now() + this.moveSpeed;
+                this.nextRandomMove = Date.now() + this.getAttributeValue('moveSpeed');
                 break;
             }
         }
@@ -257,21 +236,21 @@ export class Enemy {
 
             switch(currentMoveType) {
                 case 'HORIZONTAL':{
-                    this.position.x += this.direction * (this.moveSpeed * 0.05 * speedMultiplier * deltaTime * 60);
+                    this.position.x += this.direction * (this.getAttributeValue('moveSpeed') * 0.05 * speedMultiplier * deltaTime * 60);
                     if (this.position.x <= 0 || this.position.x >= this.maxX) {
                         this.direction *= -1;
                     }
                     break;
                 }
                 case 'VERTICAL':{
-                    this.position.y += this.direction * (this.moveSpeed * 0.05 * speedMultiplier * deltaTime * 60);
+                    this.position.y += this.direction * (this.getAttributeValue('moveSpeed') * 0.05 * speedMultiplier * deltaTime * 60);
                     if (this.position.y <= 0 || this.position.y >= this.maxY) {
                         this.direction *= -1;
                     }
                     break;
                 }
                 case 'CIRCULAR':{
-                    this.angle += (this.moveSpeed * 0.0005 * speedMultiplier * deltaTime * 60);
+                    this.angle += (this.getAttributeValue('moveSpeed') * 0.0005 * speedMultiplier * deltaTime * 60);
                     this.position.x = this.originX + Math.cos(this.angle) * this.radius;
                     this.position.y = this.originY + Math.sin(this.angle) * this.radius;
                     break;
@@ -282,7 +261,7 @@ export class Enemy {
                             x: Math.random() * this.maxX,
                             y: Math.random() * this.maxY
                         };
-                        this.nextRandomMove = Date.now() + (this.moveSpeed);
+                        this.nextRandomMove = Date.now() + (this.getAttributeValue('moveSpeed'));
                     }
                     break;
                 }
@@ -417,11 +396,11 @@ export class Enemy {
         damage = Math.max(1, damage - damageReduction);
 
         let isCritical = false;
-        const critChance = Math.max(0, (player.criticalChance || 0) - this.criticalResistance || 0);
+        const critChance = Math.max(0, (player.getAttributeValue('criticalChance') || 0) - this.getAttributeValue('criticalResistance') || 0);
         const rollCrit = Math.random() * 100;
         if (rollCrit < critChance) {
             isCritical = true;
-            damage = Math.floor(damage * (player.criticalMultiplier || 1.5));
+            damage = Math.floor(damage * (player.getAttributeValue('criticalMultiplier') || 1.5));
         }
 
         const rect = this.hpContainer.getBoundingClientRect();
@@ -548,7 +527,7 @@ export class Enemy {
                 }
             }
 
-            if (this.attackCooldown > this.attackSpeed) {
+            if (this.attackCooldown > this.getAttributeValue('attackSpeed')) {
                 this.attackCooldown = 0;
                 if (this.canAttack) {
                     this.attackPlayer();
@@ -571,11 +550,11 @@ export class Enemy {
             damage = Math.max(1, damage - damageReduction);
 
             let isCritical = false;
-            const critChance = Math.max(0, (this.criticalChance || 0) - player.criticalResistance || 0);
+            const critChance = Math.max(0, (this.getAttributeValue('criticalChance') || 0) - player.getAttributeValue('criticalResistance') || 0);
             const rollCrit = Math.random() * 100;
             if (rollCrit < critChance) {
                 isCritical = true;
-                damage = Math.floor(damage * (this.criticalMultiplier || 1.5));
+                damage = Math.floor(damage * (this.getAttributeValue('criticalMultiplier') || 1.5));
             }
 
             gameContainer.classList.add('player-hit-shake');
