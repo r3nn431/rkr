@@ -226,6 +226,7 @@ document.getElementById('btn-menu-start').addEventListener('click', () => {
 });
 
 function startGame(){
+    isLoading = true;
     document.getElementById('btn-advance').disabled = false;
     createPlayer();
     setBackground('corridor.png');

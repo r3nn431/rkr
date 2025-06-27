@@ -95,8 +95,7 @@ export const abilities = [
         costType: "MP",
         target: "SELF",
         usage: "ANY",
-        effectId: "effect-protected",
-        useCondition: []
+        effects: ["effect-protected"]
     },
     {
         id: "power-poison",
@@ -109,8 +108,7 @@ export const abilities = [
         costType: "MP",
         target: "ENEMY",
         usage: "COMBAT",
-        effectId: "effect-poisoned",
-        useCondition: []
+        effects: ["effect-poisoned"]
     }
 ];
 

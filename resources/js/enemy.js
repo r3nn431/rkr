@@ -523,7 +523,7 @@ export class Enemy {
                 this.element = null;
                 if (enemies.length === 0) {
                     document.getElementById('btn-advance').textContent = 'ADVANCE';
-                    player.cancelTargetSelection();
+                    if(player) player.cancelTargetSelection();
                 }
             }, isEscaping ? 800 : 500);
         }
@@ -604,6 +604,11 @@ export class Enemy {
     }
 
     //@title EFFECTS
+    canReceiveEffect(effectId) {
+        if (this.hasEffect(effectId)) return false;
+        return true;
+    }
+
     addEffect(effectId, source = null) {
         const effectTemplate = db.effects.find(e => e.id === effectId);
         if (!effectTemplate) {
@@ -732,8 +737,8 @@ function setEnemyVariation(instance){
     instance.hp += 10;
     instance.hpBar.setMax(instance.maxHp);
     instance.hpBar.setCurrent(instance.hp);
-    instance.attack += 2;
     instance.xpReward = Math.floor(instance.xpReward * 1.5);
+    instance.attack.value += 2;
     // add an ability for strong enemies
 }
 

@@ -617,10 +617,16 @@ export class Player {
         if (!this.canUseAbility(ability)) return false;
         switch(ability.target) {
             case "SELF":{
-                if (ability.effectId) {
-                    if (!this.addEffect(ability.effectId, 'player')) return false;
+                const canReceiveEffect = ability.effects.every(effectId => this.canReceiveEffect(effectId));
+                if (!canReceiveEffect) {
+                    showDialog(`This power won't have any effect.`, {doLog: false});
+                    return false;
                 }
-                showDialog(`Used ${ability.name} on yourself!`);
+                ability.effects.forEach(effectId => {
+                    if (!this.canReceiveEffect(effectId)) return false;
+                    this.addEffect(effectId, 'player');
+                });
+                showDialog(`Used ${ability.name}!`);
                 break;
             }
             case "ENEMY":{
@@ -628,20 +634,21 @@ export class Player {
                 return false;
             }
             case "ALL_ENEMIES":{
-                if (ability.effectId){
-                    const canApplyToAny = enemies.some(enemy => !enemy.hasEffect(ability.effectId));
+                if (ability.effects && ability.effects.length > 0) {
+                    const canApplyToAny = enemies.some(enemy => ability.effects.some(effectId => enemy.canReceiveEffect(effectId)));
                     if (!canApplyToAny) {
-                        showDialog(`All enemies are already affected by this effect!`, {doLog: false});
+                        showDialog(`All enemies are already affected by these effects or are immune!`, { doLog: false });
                         return false;
                     }
-                    let affectedCount = 0;
                     enemies.forEach(enemy => {
-                        if (!enemy.hasEffect(ability.effectId)) {
-                            enemy.addEffect(ability.effectId, 'player');
-                            affectedCount++;
-                        }
+                        ability.effects.forEach(effectId => {
+                            if (enemy.canReceiveEffect(effectId)) {
+                                enemy.addEffect(effectId, 'player');
+                            }
+                        });
                     });
-                    showDialog(`Used ${ability.name} on ${affectedCount === enemies.length ? 'all' : `${affectedCount}`} enem${affectedCount !== 1 ? 'ies' : 'y'}!`);
+                    //showDialog(`Used ${ability.name} on ${affectedCount === enemies.length ? 'all' : `${affectedCount}`} enem${affectedCount !== 1 ? 'ies' : 'y'}!`);
+                    showDialog(`Used ${ability.name}!`);
                 }
                 break;
             }
@@ -675,16 +682,23 @@ export class Player {
 
     applyAbilityToEnemy(abilityId, enemy) {
         const ability = this.abilities[abilityId];
-        if (!ability || !ability.effectId) return;
+        if (!ability) return false;
         if (!this.canUseAbility(ability)) return false;
-        if (ability.effectId){
-            if (enemy.hasEffect(ability.effectId)) {
-                showDialog(`${enemy.name} is already affected by this effect.`, {doLog: false});
+        
+        if (ability.effects || ability.effects.length > 0) {
+            const applicableEffects = ability.effects.filter(effectId => 
+                enemy.canReceiveEffect(effectId)
+            );
+            if (applicableEffects.length === 0) {
+                showDialog(`${enemy.name} cannot receive any of ${ability.name}'s effects!`, { doLog: false });
                 return false;
             }
-            enemy.addEffect(ability.effectId, 'player');
+            applicableEffects.forEach(effectId => {
+                enemy.addEffect(effectId, 'player');
+            });
         }
-        showDialog(`Used ${ability.name} on ${enemy.name}!`);
+        
+        showDialog(`Used ${ability.name}!`);
         this.reducePowerCost(abilityId);
         return true;
     }
@@ -700,12 +714,7 @@ export class Player {
         const ability = this.abilities[abilityId];
         if (!ability || ability.target !== "ENEMY") return;
 
-        const validTargets = enemies.filter(enemy => {
-            if (ability.effectId) {
-                return !enemy.hasEffect(ability.effectId);
-            }
-            return true;
-        });
+        const validTargets = enemies.filter(enemy => ability.effects.some(effectId => enemy.canReceiveEffect(effectId)));
         if (validTargets.length === 0) {
             showDialog("No valid targets for this ability!", {doLog: false});
             return;
@@ -739,11 +748,6 @@ export class Player {
         if (enemy && this.currentTargetingAbility) {
             if (!enemy.isAlive()) {
                 showDialog("That enemy is already defeated!", {doLog: false});
-                return;
-            }
-            const ability = this.abilities[this.currentTargetingAbility];
-            if (ability.effectId && enemy.hasEffect(ability.effectId)) {
-                showDialog("That enemy is already affected by this effect!", {doLog: false});
                 return;
             }
             this.applyAbilityToEnemy(this.currentTargetingAbility, enemy);
@@ -841,9 +845,11 @@ export class Player {
             }
         }
         let effectInfo = '';
-        if (template.effectId){
-            const effect = db.effects.find(e => e.id === template.effectId);
-            effectInfo = `<small class="ability-effect">'${effect.name}' Effect: ${effect.description}</small>`;
+        if (ability.effects && ability.effects.length > 0) {
+            effectInfo = ability.effects.map(effectId => {
+                const effect = db.effects.find(e => e.id === effectId);
+                return `<small class="ability-effect">'${effect.name}': ${effect.description}</small>`;
+            }).join('<br>');
         }
         return `
             <div class="ability-item ${template.isPassive ? 'passive' : 'power'} ${template.isCurse ? 'curse' : ''}" 
@@ -865,14 +871,15 @@ export class Player {
     }
 
     //@title EFFECTS
+    canReceiveEffect(effectId) {
+        if (this.hasEffect(effectId)) return false;
+        return true;
+    }
+
     addEffect(effectId, source = null) {
         const template = db.effects.find(e => e.id === effectId);
         if (!template) {
             logError(new Error(`Effect ${effectId} not found`));
-            return false;
-        }
-        if (this.hasEffect(effectId)) {
-            showDialog(`You are already affected by ${template.name}.`, {doLog: false});
             return false;
         }
         this.removeEffect(effectId);
