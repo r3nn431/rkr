@@ -1264,6 +1264,12 @@ blockquote::after {
     font-weight: bold;
 }
 
+.player-dead .equip-checkbox {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
 /* EFFECTS */
 .effect-item {
     display: flex;

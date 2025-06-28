@@ -239,7 +239,7 @@ export const items = [
         currency: 'currency-gold_coin',
         type: 'Consumables',
         subType: 'Purifiers',
-        effect: { type: "EFFECT", stat: "effect-poisoned", value: 1 }
+        effect: { type: "EFFECT", id: "effect-poisoned", value: 1 }
     },
     {
         id: 'weapon-sword',
@@ -248,7 +248,8 @@ export const items = [
         subType: 'Weapons',
         description: 'An ordinary sword',
         effects: [
-            { stat: 'strength', value: 2 }
+            { type: 'MODIFIER', id: 'attack', value: 15 },
+            { type: 'MODIFIER', id: 'attackSpeed', value: 2000 }
         ]
     },
     {
@@ -258,7 +259,9 @@ export const items = [
         subType: 'Weapons',
         description: 'An ordinary rapier',
         effects: [
-            { stat: 'strength', value: 2 }
+            { type: 'MODIFIER', id: 'attack', value: 2 },
+            { type: 'MODIFIER', id: 'attackSpeed', value: -1000 },
+            { type: 'EFFECT', id: 'effect-poisoned', value: 0.9, usage: "ON_ATTACK", target: "ENEMY" }
         ]
     },
     {
@@ -268,7 +271,7 @@ export const items = [
         subType: 'Armors',
         description: 'An ordinary light armor',
         effects: [
-            { stat: 'defense', value: 3 }
+            { type: 'MODIFIER', id: 'defense', value: 3 }
         ]
     },
 ];

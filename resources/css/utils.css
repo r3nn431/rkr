@@ -81,6 +81,7 @@
 .toast.error, .toast.removed, .toast.debuff {
     border-color: #8b0000;
     background: #2b1a1a;
+    color: rgb(235, 232, 232);
 }
 
 .toast.warning {

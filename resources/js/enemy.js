@@ -97,7 +97,7 @@ export class Enemy {
         this.attackButton = document.createElement('button');
         this.attackButton.className = 'enemy-attack-btn';
         this.attackButton.textContent = 'ATTACK';
-        this.attackButton.addEventListener('click', () => this.handleAttack());
+        this.attackButton.addEventListener('click', () => this.handlePlayerAttack());
         this.element.appendChild(this.attackButton);
         if (player && player.attackReady) this.attackButton.disabled = false;
         else this.attackButton.disabled = true;
@@ -375,7 +375,7 @@ export class Enemy {
     }
 
     //@title PLAYER ATTACK
-    handleAttack() {
+    handlePlayerAttack() {
         if (!player || !player.attackReady) return;
 
         const hitChance = Math.max(5, Math.min(95, this.getAttributeValue('evasion') - player.getAttributeValue('accuracy')));
@@ -413,6 +413,7 @@ export class Enemy {
             showDialog(`You hit ${this.name} for ${damage} damage!`, { doLog: false });
         }
 
+        player.applyEquipmentEffectsByUsage('ON_ATTACK', this);
         player.startAttackCooldown();
         if (isDead) this.onDeath();
     }
@@ -620,6 +621,14 @@ export class Enemy {
         }
         delete this.activeEffects[effectId];
         this.updateEffectsUI();
+        if (player?.currentTargetingAbility) {
+            const ability = player.abilities[player.currentTargetingAbility];
+            if (ability?.effects?.includes(effectId)) {
+                const currentAbilityId = player.currentTargetingAbility;
+                player.cancelTargetSelection();
+                player.startTargetSelection(currentAbilityId);
+            }
+        }
         return true;
     }
 

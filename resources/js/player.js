@@ -21,13 +21,14 @@ const attributes = [
     { name: 'criticalResistance', isPercentage: true, isSkill: false, rarity: 0 },
     { name: 'luck', isPercentage: false, isSkill: false, rarity: 0 },
     { name: 'alchemy', isPercentage: false, isSkill: true, rarity: 0 },
-    { name: 'craftsmanship', isPercentage: false, isSkill: true, rarity: 0 }
+    { name: 'craftsmanship', isPercentage: false, isSkill: true, rarity: 0 },
+    { name: 'attackSpeed', isPercentage: false, isSkill: false, rarity: 0 }
 ];
 
 export class Player {
     constructor() {
         this.title = 'Newborn';
-        this.attributePoints = 2;
+        this.attributePoints = 0;
         // ATTRIBUTES
         this.constitution = { value: 1, minValue: 1, maxValue: 100, tempValue: 0 };
         this.strength = { value: 1, minValue: 1, maxValue: 100, tempValue: 0 };
@@ -336,6 +337,11 @@ export class Player {
             case 'dexterity': {
                 this.updateAttributeUi('evasion');
                 this.updateAttributeUi('stealth');
+                break;
+            }
+            case 'attackSpeed': {
+                this.attackCooldownBar.setMax(this.getAttributeValue('attackSpeed'));
+                this.startAttackCooldown();
                 break;
             }
         }
@@ -1130,45 +1136,66 @@ export class Player {
     }
 
     equipItem(itemId) {
+        if (this.isDead) return false;
         const item = this.inventory.items[itemId]?.details;
         if (!item || item.type !== 'Equipments') return false;
+        if (this.isItemEquipped(itemId)) return false;
         this.unequipItemsBySubType(item.subType);
         this.inventory.equipped.push({
             id: itemId,
             subType: item.subType,
             effects: item.effects || []
         });
-        this.applyItemEffects(itemId);
+        this.applyEquipmentEffects(itemId);
         return true;
     }
 
     unequipItemsBySubType(subType) {
         const itemsToRemove = this.inventory.equipped.filter(item => item.subType === subType);
         itemsToRemove.forEach(item => {
-            this.removeItemEffects(item.id);
-            this.inventory.equipped = this.inventory.equipped.filter(e => e.id !== item.id);
+            this.removeEquipmentEffects(item.id);
         });
+        this.inventory.equipped = this.inventory.equipped.filter(item => item.subType !== subType);
     }
 
     unequipItem(itemId) {
-        this.removeItemEffects(itemId);
+        if (this.isDead) return false;
+        this.removeEquipmentEffects(itemId);
         this.inventory.equipped = this.inventory.equipped.filter(item => item.id !== itemId);
     }
 
-    applyItemEffects(itemId) {
+    applyEquipmentEffects(itemId) {
         const item = this.inventory.items[itemId]?.details;
         if (!item || !item.effects) return;
         item.effects.forEach(effect => {
-            // this.applyModifier(effect.stat, effect.value);
+            if (effect.type === 'MODIFIER') {
+                this.applyModifier(effect.id, effect.value);
+            }
         });
     }
 
-    removeItemEffects(itemId) {
+    removeEquipmentEffects(itemId) {
+        const equippedItem = this.inventory.equipped.find(item => item.id === itemId);
+        if (!equippedItem) return;
         const item = this.inventory.items[itemId]?.details;
         if (!item || !item.effects) return;
         item.effects.forEach(effect => {
-            // this.applyModifier(effect.stat, -effect.value);
+            if (effect.type === 'MODIFIER') {
+                this.applyModifier(effect.id, -effect.value);
+            }
         });
+    }
+
+    applyEquipmentEffectsByUsage(usage, enemy = null) {
+        this.inventory.equipped.forEach(item => {
+            item.effects.forEach(effect => {
+                if (effect.type === 'EFFECT' && effect.usage === usage) {
+                    if (effect.target === 'SELF') this.addEffect(effect.id);
+                    if (effect.target === 'ENEMY') enemy.addEffect(effect.id);
+                }
+            });
+        })
+
     }
 }
 
@@ -1178,6 +1205,7 @@ function gameOver(causeOfDeath) {
     clearAllEnemies();
     clearAllEvents();
     player.isDead = true;
+    document.body.classList.add('player-dead');
     document.getElementById('btn-advance').disabled = true;
     ensureValidSidePanel();
 }
@@ -1224,6 +1252,10 @@ document.querySelectorAll('.btn-attribute.decrease').forEach(btn => {
 
 function setupEquipmentCheckboxes() {
     document.addEventListener('change', (e) => {
+        if (player.isDead) {
+            e.preventDefault();
+            return;
+        }
         if (e.target.classList.contains('equip-checkbox')) {
             const itemId = e.target.dataset.itemId;
             const subType = e.target.dataset.subType;
