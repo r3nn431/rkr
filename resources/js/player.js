@@ -60,8 +60,8 @@ export class Player {
         this.level = 1;
         this.xp = 0;
         this.xpToNextLevel = this.calculateXpToNextLevel();
-        this.mpMax = this.calculateMaxMp();
-        this.mp = this.mpMax;
+        this.maxMp = this.calculateMaxMp();
+        this.mp = this.maxMp;
         // UI
         this.hpBar = new ProgressBar({
             id: 'player-bar-hp',
@@ -99,8 +99,8 @@ export class Player {
             id: 'player-bar-mp',
             containerId: 'player-mp-container',
             min: 0,
-            max: this.mpMax,
-            current: this.mpMax,
+            max: this.maxMp,
+            current: this.maxMp,
             color: 'var(--mp)',
             textTemplate: (min, current, max) => `MP ${current}/${max}`,
             enableLowEffect: false
@@ -1029,9 +1029,10 @@ export class Player {
             }
             case 'RESTORES MP':{
                 if (this.mp === this.maxMp) {
-                    showDialog('You are already at full mana.', {doLog: false});
+                    showDialog('You are already at full arcane energy.', {doLog: false});
                     return false;
                 }
+                console.log("mp: ", this.mp, " maxMp: ", this.maxMp);
                 const heal = Math.min(Math.round(this.maxMp * item.details.effect.value), this.maxMp - this.mp);
                 this.increaseMp(heal);
                 showDialog(`Used ${item.details.name}! Healed ${heal} MP.`);
@@ -1093,8 +1094,8 @@ export class Player {
             'Enemy Drops': 'Materials to craft equipments and mix potions',
             'Currencies': 'Use to pay the requested amount',
             'Valuables': 'These items sell for a good price',
-            'Restores HP': 'Potions that restore life',
-            'Restores MP': 'Potions that restore mana',
+            'Restores HP': 'Potions that restore life force',
+            'Restores MP': 'Potions that restore arcane energy',
             'Purifiers': 'Potions that remove curses and debilitating effects',
             'Enhancers': 'Potions that give effects or status modifiers',
             'Scrolls': 'Using a scroll allows you to perform a special action and then it disappears',

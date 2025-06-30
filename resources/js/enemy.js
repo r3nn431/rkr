@@ -22,11 +22,13 @@ export class Enemy {
         this.escapeChance = data.escapeChance || 30;
         this.escapeRate = data.escapeRate || 20;
         this.disablePlayerEscape = data.disablePlayerEscape || false;
-        this.allowSwarm = data.allowSwarm || false;
         this.canAttack = data.canAttack !== undefined ? data.canAttack : true;
         this.info = data.info || 'A dangerous enemy';
         this.img = data.img || ["default.png"];
-        this.loot = data.loot || [];
+        this.loot = db.lootTables[this.type] || [];
+        if (data.loot) {
+            this.loot = [...this.loot, ...data.loot];
+        }
 
         this.level = this.setLevel();
         this.xpReward = data.xpReward || 10;
@@ -659,7 +661,7 @@ export class Enemy {
         const effect = this.activeEffects[effectId];
         if (!effect) return;
         switch(effect.usage) {
-            case "DAMAGE_OVER_TIME":{
+            case "DAMAGE_TICK":{
                 const isDead = this.takeDamage(effect.value);
                 if (isDead) this.onDeath();
                 break;

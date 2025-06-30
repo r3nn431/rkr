@@ -27,7 +27,7 @@ export class Event {
         if (this.disableAdvance) document.getElementById('btn-advance').disabled = true;
         this.element = document.createElement('div');
         this.element.className = 'event-container';
-        if (this.templateId === 'chest') this.element.style.height = '30vh';
+        if (this.templateId === 'event-chest') this.element.style.height = '30vh';
         this.createUI();
         this.setupLocation();
         this.startMovement();
@@ -376,7 +376,7 @@ export class Event {
     handleAction() {
         this.destroy();
         switch(this.templateId) {
-            case 'chest': {
+            case 'event-chest': {
                 const subEvent = getWeightedRandom(this.subEvents);
                 if (subEvent.id === 'mimic') {
                     showDialog('The chest was a mimic!');
@@ -386,14 +386,15 @@ export class Event {
                         y: this.position.y
                     };
                     mimic.updatePosition();
-                    mimic.loot = this.loot;
+                    mimic.loot = [...this.loot, ...db.lootTables['CHEST']];
                 } else {
                     showDialog('You open the chest and...');
+                    this.loot = db.lootTables['CHEST'];
                     this.dropLoot();
                 }
                 break;
             }
-            case 'trap': {
+            case 'event-trap': {
                 showDialog(`You successfully avoided a trap!`);
                 break;
             }
@@ -403,7 +404,7 @@ export class Event {
     onBorderAction() {
         this.destroy();
         switch(this.templateId) {
-            case 'trap': {
+            case 'event-trap': {
                 showDialog(`You were caught in a trap!`);
                 this.attackPlayer();
                 break;

@@ -291,35 +291,35 @@ function advance() {
             return;
         }
         switch(outcome.id) {
-            case 'enemy':{
+            case 'outcome-enemy':{
                 showDialog('An enemy approaches!');
                 let selectedEnemy = getModifiedEnemies();
                 callEnemy(selectedEnemy.id);
                 break;
             }
-            case 'chest':{
+            case 'event-chest':{
                 showDialog('You find a chest!');
-                callEvent('chest');
+                callEvent('event-chest');
                 break;
             }
-            case 'trap':{
+            case 'event-trap':{
                 showDialog('It is a trap!');
-                callEvent('trap');
+                callEvent('event-trap');
                 const additionalTrapChance = 0.3;
                 const secondAdditionalTrapChance = 0.1;
                 if (Math.random() < additionalTrapChance) {
                     setTimeout(() => {
-                        callEvent('trap');
+                        callEvent('event-trap');
                         if (Math.random() < secondAdditionalTrapChance) {
                             setTimeout(() => {
-                                callEvent('trap');
+                                callEvent('event-trap');
                             }, 500);
                         }
                     }, 500);
                 }
                 break;
             }
-            case 'bee':{
+            case 'event-bee':{
                 // show event bee if queen bee is alive, if not call bee swarm
                 break;
             }

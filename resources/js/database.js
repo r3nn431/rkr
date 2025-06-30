@@ -13,7 +13,7 @@ export const enemies = [
         defense: 0,
         ability: {},
         type: 'MUTANT',
-        moveType: 'MIXED',
+        moveType: 'HORIZONTAL',
         moveSpeed: 90,
         attackSpeed: 4000,
         canEscape: false,
@@ -26,13 +26,10 @@ export const enemies = [
         criticalResistance: 0,
         accuracy: 80,
         evasion: 10,
-        allowSwarm: true,
         canAttack: true,
         info: 'A common enemy here',
         img: ["rat.png"],
-        loot: [
-            {id: "item-small_hp_potion", quantity: 1, chance: 100}
-        ]
+        loot: []
     },
     {
         id: "enemy-chest_mimic",
@@ -58,11 +55,12 @@ export const enemies = [
         criticalResistance: 0,
         accuracy: 90,
         evasion: 0,
-        allowSwarm: false,
         canAttack: true,
         info: 'Be careful when opening chests',
         img: ["chest_mimic.png"],
-        loot: []
+        loot: [
+            { id: "currency-gold_coin", quantity: 30, chance: 100 }
+        ]
     }
 ];
 
@@ -117,6 +115,7 @@ export const effects = [
     {
         id: "effect-poisoned",
         name: "Poisoned",
+        relativeName: "Poison",
         description: "Does 2 damage every second for 10 seconds",
         usage: "DAMAGE_TICK",
         duration: 10000,
@@ -129,6 +128,7 @@ export const effects = [
     {
         id: "effect-reverse_damage",
         name: "Reversed",
+        relativeName: "Reversal",
         description: "Target's next 3 attacks revert to itself",
         usage: "ON_ATTACK",
         hasDuration: false,
@@ -155,7 +155,7 @@ export const effects = [
 //@title EVENTS
 export const events = [
     {
-        id: "chest",
+        id: "event-chest",
         rarity: 40,
         disableAdvance: false,
         subEvents: [
@@ -172,17 +172,10 @@ export const events = [
         img: "chest.png",
         actionName: "OPEN",
         moveType: "FIXED",
-        startPosition: "MIDDLE",
-        loot: [
-            {id: "item-small_hp_potion", quantity: 1, chance: 80},
-            {id: "item-small_hp_potion", quantity: 1, chance: 20},
-            {id: "currency-gold_coin", quantity: 1, chance: 100},
-            {id: "currency-gold_coin", quantity: 5, chance: 85},
-            {id: "currency-gold_coin", quantity: 3, chance: 65}
-        ]
+        startPosition: "MIDDLE"
     },
     {
-        id: "trap",
+        id: "event-trap",
         rarity: 30,
         disableAdvance: true,
         name: "Arrow Trap",
@@ -193,11 +186,11 @@ export const events = [
         attack: 30
     },
     {
-        id: 'enemy',
+        id: 'outcome-enemy',
         rarity: 70
     },
     {
-        id: 'nothing',
+        id: 'outcome-nothing',
         rarity: 5
     }
 ]
@@ -208,15 +201,13 @@ function generatePurifiersFromEffects() {
         .filter(effect => effect.isDebuff)
         .map(effect => ({
             id: `item-cure_${effect.id.replace('effect-', '')}`,
-            name: `${effect.name} Antidote`,
+            name: `Cure ${effect.relativeName} Potion`,
             description: `Removes the "${effect.name}" effect`,
             price: 40,
             currency: 'currency-gold_coin',
             type: 'Consumables',
             subType: 'Purifiers',
-            effect: { 
-                type: "EFFECT", id: effect.id, value: 1
-            }
+            effect: { type: "EFFECT", id: effect.id }
         }));
 }
 
@@ -230,9 +221,9 @@ export const items = [
     },
     {
         id: 'item-small_hp_potion',
-        name: 'Lesser Healing Potion',
+        name: 'Minor Vitality Potion',
         description: 'Restores 15% of your maximum HP',
-        price: 15,
+        price: 30,
         currency: 'currency-gold_coin',
         type: 'Consumables',
         subType: 'Restores HP',
@@ -240,13 +231,53 @@ export const items = [
     },
     {
         id: 'item-medium_hp_potion',
-        name: 'Greater Healing Potion',
+        name: 'Greater Vitality Potion',
         description: 'Restores 50% of your maximum HP',
-        price: 40,
+        price: 60,
         currency: 'currency-gold_coin',
         type: 'Consumables',
         subType: 'Restores HP',
         effect: { value: 0.50 }
+    },
+    {
+        id: 'item-full_hp_potion',
+        name: 'Elixir of Renewal',
+        description: 'Restores 100% of your maximum HP',
+        price: 140,
+        currency: 'currency-gold_coin',
+        type: 'Consumables',
+        subType: 'Restores HP',
+        effect: { value: 1 }
+    },
+    {
+        id: 'item-small_mp_potion',
+        name: 'Minor Arcane Potion',
+        description: 'Restores 15% of your maximum MP',
+        price: 50,
+        currency: 'currency-gold_coin',
+        type: 'Consumables',
+        subType: 'Restores MP',
+        effect: { value: 0.15 }
+    },
+    {
+        id: 'item-medium_mp_potion',
+        name: 'Greater Arcane Potion',
+        description: 'Restores 50% of your maximum MP',
+        price: 90,
+        currency: 'currency-gold_coin',
+        type: 'Consumables',
+        subType: 'Restores MP',
+        effect: { value: 0.50 }
+    },
+    {
+        id: 'item-full_mp_potion',
+        name: 'Elixir of Enlightenment',
+        description: 'Restores 100% of your maximum MP',
+        price: 170,
+        currency: 'currency-gold_coin',
+        type: 'Consumables',
+        subType: 'Restores MP',
+        effect: { value: 1 }
     },
     ...generatePurifiersFromEffects(),
     {
@@ -286,3 +317,26 @@ export const items = [
 
 //@title RECIPES
 export const recipes = [];
+
+//@title LOOT TABLES
+export const lootTables = {
+    MUTANT: [
+        { id: "currency-gold_coin", quantity: 2, chance: 50 }
+    ],
+    ANOMALY: [
+        { id: "currency-gold_coin", quantity: 5, chance: 40 }
+    ],
+    UNDEAD: [
+        { id: "currency-gold_coin", quantity: 3, chance: 60 }
+    ],
+    PLAGUED: [
+        { id: "currency-gold_coin", quantity: 1, chance: 30 }
+    ],
+    CHEST: [
+        { id: "item-small_hp_potion", quantity: 1, chance: 80 },
+        { id: "item-small_hp_potion", quantity: 1, chance: 20 },
+        { id: "currency-gold_coin", quantity: 1, chance: 100 },
+        { id: "currency-gold_coin", quantity: 5, chance: 85 },
+        { id: "currency-gold_coin", quantity: 3, chance: 65 }
+    ]
+};
