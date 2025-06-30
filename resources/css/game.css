@@ -318,6 +318,16 @@ p {
     hyphens: auto;
 }
 
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
 #help {
     line-height: 1.8;
 }
@@ -471,12 +481,27 @@ blockquote::after {
 }
 
 .side-container {
-    max-height: 66vh;
-    overflow-y: auto;
-    margin-top: 10px;
-    border: var(--border);
     background-color: rgba(0, 0, 0, 0.3);
-    padding: 10px;
+    border: 2px solid var(--primary-color);
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5), 0 0 10px rgba(139, 90, 43, 0.3);
+    padding: 15px;
+    position: relative;
+    overflow-y: auto;
+    max-height: 66vh;
+    margin-top: 10px;
+}
+
+.side-container:empty {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.side-container:empty::before {
+    content: "Nothing here...";
+    color: var(--text-secondary);
+    font-style: italic;
+    font-size: 1.1rem;
 }
 
 .side-container::-webkit-scrollbar {
@@ -1048,6 +1073,19 @@ blockquote::after {
     background: rgba(0, 0, 0, 0.3);
     border-left: 3px solid var(--accent-color);
     border-radius: 4px;
+    border: 1px solid var(--primary-color);
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.ability-item::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(to right, transparent, var(--primary-color), transparent);
 }
 
 .ability-item.power {
@@ -1066,13 +1104,20 @@ blockquote::after {
 .ability-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 8px;
+    align-items: center;
+    margin-bottom: 10px;
 }
 
 .ability-title {
     flex: 1;
     margin-right: 5px;
+}
+
+.ability-title h4 {
+    color: var(--accent-color);
+    font-family: var(--font-Quicksand);
+    margin: 0;
+    font-size: 1.1rem;
 }
 
 .ability-type {
@@ -1151,7 +1196,7 @@ blockquote::after {
 }
 
 .subcategory-title {
-    color: var(--accent-color);
+    color: rgb(139, 194, 56);
     font-size: 0.9rem;
     margin: 10px 0 5px 0;
     padding-left: 10px;
@@ -1176,11 +1221,13 @@ blockquote::after {
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(0, 255, 221, 0.2);
     transition: all 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .item:hover {
     border-color: rgba(0, 255, 221, 0.5);
     background: rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
 }
 
 .item-info {
@@ -1188,9 +1235,13 @@ blockquote::after {
 }
 
 .item-info h4 {
-    color: var(--accent-color);
+    color: peachpuff;
     margin: 0 0 5px 0;
     font-size: 0.95rem;
+    font-family: var(--font-Quicksand);
+    font-size: 1rem;
+    border-bottom: 1px solid rgba(139, 90, 43, 0.3);
+    padding-bottom: 5px;
 }
 
 .item-info p {
@@ -1198,6 +1249,7 @@ blockquote::after {
     margin: 0;
     font-size: 0.85rem;
     line-height: 1.3;
+    color: var(--text-primary);
 }
 
 .item-meta {
@@ -1210,6 +1262,7 @@ blockquote::after {
 .item-quantity {
     color: var(--accent-color);
     font-size: 18px;
+    font-family: var(--font-Quicksand);
 }
 
 .item-value {
@@ -1233,12 +1286,70 @@ blockquote::after {
     background: rgba(0, 255, 221, 0.3);
 }
 
+.item-effects {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed rgba(139, 90, 43, 0.3);
+}
+
+.item-effect {
+    display: flex;
+    align-items: center;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    padding: 5px 8px;
+    margin-bottom: 5px;
+    line-height: 1.4;
+}
+
+.item-effect.buff {
+    background-color: rgba(76, 175, 80, 0.15);
+    border-left: 3px solid rgba(76, 175, 80, 0.7);
+    color: #d1e7dd;
+}
+
+.item-effect.debuff {
+    background-color: rgba(220, 53, 69, 0.15);
+    border-left: 3px solid rgba(220, 53, 69, 0.7);
+    color: #f8d7da;
+}
+
+.item-effect:last-child {
+    margin-bottom: 0;
+}
+
+.item-effect::before {
+    content: "❧";
+    color: var(--primary-color);
+    margin-right: 5px;
+    font-size: 0.7rem;
+}
+
+.effect-name {
+    color: var(--accent-color);
+    font-weight: bold;
+}
+
+.effect-desc {
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
 .equip-toggle {
     display: flex;
     align-items: center;
     gap: 5px;
     cursor: pointer;
     margin-left: 10px;
+    flex-direction: column;
+    min-width: 80px;
+}
+
+.equip-toggle span {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .equip-checkbox {
@@ -1249,6 +1360,10 @@ blockquote::after {
     background: rgba(43, 32, 21, 0.5);
     cursor: pointer;
     position: relative;
+
+    width: 24px;
+    height: 24px;
+    transition: all 0.3s ease;
 }
 
 .equip-checkbox:checked {
@@ -1262,6 +1377,11 @@ blockquote::after {
     left: 3px;
     color: #000;
     font-weight: bold;
+
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 14px;
 }
 
 .player-dead .equip-checkbox {
@@ -1278,6 +1398,10 @@ blockquote::after {
     margin-bottom: 10px;
     background: rgba(0, 0, 0, 0.3);
     border-left: 3px solid var(--accent-color);
+
+    border: 1px solid var(--primary-color);
+    padding: 12px;
+    position: relative;
 }
 
 .effect-item.buff {
@@ -1296,6 +1420,11 @@ blockquote::after {
     margin-right: 5px;
     font-family: 'icomoon';
     font-size: 48px;
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent-color);
 }
 
 .effect-info {

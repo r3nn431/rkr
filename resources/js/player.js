@@ -16,14 +16,20 @@ const attributes = [
     { name: 'evasion', isPercentage: true, isSkill: false, rarity: 0 },
     { name: 'stealth', isPercentage: true, isSkill: false, rarity: 0 },
     { name: 'accuracy', isPercentage: true, isSkill: false, rarity: 0 },
-    { name: 'criticalChance', isPercentage: true, isSkill: false, rarity: 0 },
-    { name: 'criticalMultiplier', isPercentage: false, isSkill: false, rarity: 0 },
-    { name: 'criticalResistance', isPercentage: true, isSkill: false, rarity: 0 },
+    { name: 'criticalChance', isPercentage: true, isSkill: false, rarity: 0, formattedName: 'critical chance' },
+    { name: 'criticalMultiplier', isPercentage: false, isSkill: false, rarity: 0, formattedName: 'critical multiplier' },
+    { name: 'criticalResistance', isPercentage: true, isSkill: false, rarity: 0, formattedName: 'critical resistance' },
     { name: 'luck', isPercentage: false, isSkill: false, rarity: 0 },
     { name: 'alchemy', isPercentage: false, isSkill: true, rarity: 0 },
     { name: 'craftsmanship', isPercentage: false, isSkill: true, rarity: 0 },
-    { name: 'attackSpeed', isPercentage: false, isSkill: false, rarity: 0 }
+    { name: 'attackSpeed', isPercentage: false, isSkill: false, rarity: 0, formattedName: 'attack speed' },
 ];
+
+const targetNames = {
+    'SELF': 'you',
+    'ENEMY': 'one enemy',
+    'ALL_ENEMIES': 'all enemies'
+};
 
 export class Player {
     constructor() {
@@ -390,6 +396,11 @@ export class Player {
         this.mpBar.setCurrent(this.mp);
     }
 
+    increaseMp(amount) {
+        this.mp = Math.min(this.maxMp, this.mp + amount);
+        this.mpBar.setCurrent(this.mp);
+    }
+
     startAttackCooldown() {
         this.attackReady = false;
         enemies.forEach(enemy => {
@@ -494,6 +505,13 @@ export class Player {
         showToast(`New ${template.isPassive ? 'passive' : 'power'} added!`, `${template.isPassive && template.isCurse ? 'debuff' : 'buff'}`, {targetElement: document.getElementById('btn-abilities')});
         return true;
     }
+
+    removeAbility(id) {
+        if (!this.abilities[id]) return false;
+        delete this.abilities[id];
+        this.updateAbilitiesUI();
+        return true;
+    }
     
     applyAbilityEffects(passive) {
         switch(passive){
@@ -528,16 +546,16 @@ export class Player {
         if (this.isDead) return false;
         if (ability.cooldown && ability.remainingCooldown > Date.now()) return false;
         switch (ability.usage) {
-            case 'COMBAT': {
+            case 'BATTLE': {
                 if (enemies.length === 0) {
-                    showDialog('You can only use this ability in combat.', {doLog: false});
+                    showDialog('You can only use this ability in battle.', {doLog: false});
                     return false;
                 }
                 break;
             }
             case 'SAFE': {
                 if (enemies.length > 0) {
-                    showDialog('You can only use this ability outside combat.', {doLog: false});
+                    showDialog('You can only use this ability outside battle.', {doLog: false});
                     return false;
                 }
                 break;
@@ -759,10 +777,6 @@ export class Player {
     updateAbilitiesUI() {
         const passiveAbilities = Object.values(this.abilities).filter(a => a.isPassive);
         const powersAbilities = Object.values(this.abilities).filter(a => !a.isPassive);
-        if (passiveAbilities.length === 0 && powersAbilities.length === 0) {
-            this.elements.abilities.innerHTML = 'You currently have no abilities.';
-            return;
-        }
         let html = '';
         if (powersAbilities.length > 0) {
             html += `
@@ -808,7 +822,7 @@ export class Player {
             metadataElements.push(
                 `<div class="ability-meta"><span class="meta-label">Cost:</span> ${costText}</div>`,
                 `<div class="ability-meta"><span class="meta-label">Cooldown:</span> ${cooldownText}</div>`,
-                `<div class="ability-meta"><span class="meta-label">Target:</span> ${template.target || 'NONE'}</div>`
+                `<div class="ability-meta"><span class="meta-label">Target:</span> ${targetNames[template.target].toUpperCase() || template.target.replace('_', ' ') || 'NONE'}</div>`
             );
         } else {
             if (template.effects) {
@@ -926,7 +940,7 @@ export class Player {
         const effect = this.activeEffects[effectId];
         if (!effect) return;
         switch(effect.usage) {
-            case "DAMAGE_OVER_TIME":{
+            case "DAMAGE_TICK":{
                 this.takeDamage(effect.value, {name: effect.name});
                 break;
             }
@@ -936,10 +950,6 @@ export class Player {
     updateEffectsUI() {
         const container = this.elements.effects;
         const activeEffects = Object.values(this.activeEffects);
-        if (activeEffects.length === 0) {
-            container.innerHTML = '<p>No active effects</p>';
-            return;
-        }
         container.innerHTML = activeEffects.map(effect => {
             const effectTemplate = db.effects.find(e => e.id === effect.id);
             const effectTypeClass = effectTemplate.isDebuff ? 'debuff' : 'buff';
@@ -1017,6 +1027,17 @@ export class Player {
                 this.removeItem(itemId);
                 return true;
             }
+            case 'RESTORES MP':{
+                if (this.mp === this.maxMp) {
+                    showDialog('You are already at full mana.', {doLog: false});
+                    return false;
+                }
+                const heal = Math.min(Math.round(this.maxMp * item.details.effect.value), this.maxMp - this.mp);
+                this.increaseMp(heal);
+                showDialog(`Used ${item.details.name}! Healed ${heal} MP.`);
+                this.removeItem(itemId);
+                return true;
+            }
             case 'PURIFIERS': {
                 if (item.details.effect.type === "EFFECT") {
                     const effectId = item.details.effect.id;
@@ -1028,6 +1049,22 @@ export class Player {
                     this.removeItem(itemId);
                     return true;
                 }
+                if (item.details.effect.type === "CURSE") {
+                    const curses = Object.values(this.abilities).filter(ability => ability.isPassive && ability.isCurse);
+                    if (curses.length === 0) {
+                        showDialog("You aren't being plagued by any curses.", {doLog: false});
+                        return false;
+                    }
+                    const randomCurse = curses[Math.floor(Math.random() * curses.length)];
+                    this.removeAbility(randomCurse.id);
+                    this.removeItem(itemId);
+                    showDialog(`The curse "${randomCurse.name}" has been lifted!`);
+                    return true;
+                }
+            }
+            case 'ENHANCERS': {
+            }
+            case 'SCROLLS': {
             }
             default: {
                 logError(new Error(`Unknown item subtype: ${itemSubType}`));
@@ -1039,10 +1076,6 @@ export class Player {
     updateInventoryUI() {
         const container = this.elements.inventory;
         const itemsList = Object.values(this.inventory.items);
-        if (itemsList.length === 0) {
-            container.innerHTML = 'Your inventory is empty.';
-            return;
-        }
         const categorizedItems = {};
         itemsList.forEach(item => {
             const type = item.details.type || 'Miscellaneous';
@@ -1058,11 +1091,12 @@ export class Player {
         let html = '';
         const subTypeDescription = {
             'Enemy Drops': 'Materials to craft equipments and mix potions',
-            'Costs': 'Use to pay the requested amount',
+            'Currencies': 'Use to pay the requested amount',
             'Valuables': 'These items sell for a good price',
             'Restores HP': 'Potions that restore life',
+            'Restores MP': 'Potions that restore mana',
             'Purifiers': 'Potions that remove curses and debilitating effects',
-            'Fortifiers': 'Potions that give effects and/or status modifiers',
+            'Enhancers': 'Potions that give effects or status modifiers',
             'Scrolls': 'Using a scroll allows you to perform a special action and then it disappears',
             'Accessories': 'Keep equipped to gain its effects and only 1 can be equipped at a time',
             'Weapons': 'Keep equipped to gain its effects and only 1 can be equipped at a time',
@@ -1098,11 +1132,47 @@ export class Player {
         const isEquipment = item.details.type === 'Equipments';
         const isEquipped = this.isItemEquipped(item.details.id);
         const isConsumable = item.details.type === 'Consumables';
+        let effectsHTML = '';
+        if (isEquipment && item.details.effects && item.details.effects.length > 0) {
+            effectsHTML = `<div class="item-effects">
+                ${item.details.effects.map(effect => {
+                    let effectText = '';
+                    const effectClass = effect.isDebuff ? 'debuff' : 'buff';
+                    if (effect.type === 'MODIFIER') {
+                        const attribute = attributes.find(a => a.name === effect.id);
+                        const sign = effect.value >= 0 ? '+' : '';
+                        let value = effect.value;
+                        let unit = '';
+                        if (effect.id === 'attackSpeed') {
+                            value = effect.value / 1000;
+                            unit = 's';
+                        } else {
+                            unit = attribute.isPercentage ? '%' : '';
+                        }
+                        effectText = `${attribute.formattedName || effect.id} ${sign}${value}${unit}`;
+                    } else if (effect.type === 'EFFECT') {
+                        const condition = db.effects.find(e => e.id === effect.id);
+                        const chanceText = effect.value < 1 ? `${Math.round(effect.value * 100)}% chance` : 'always';
+                        const usageText = {
+                            'ON_ATTACK': 'on attack',
+                            'ON_HIT': 'when hit',
+                            'ON_EQUIP': 'while equipped',
+                            'ON_USE': 'when used'
+                        }[effect.usage] || effect.usage.toLowerCase().replace('_', ' ');
+                        effectText = `<div>Grants <span class="effect-name">${condition.name}</span> ` +
+                                    `(<span class="effect-desc">${condition.description}</span>) ` +
+                                    `to ${targetNames[effect.target] || effect.target.toLowerCase()} (${chanceText} ${usageText})</div>`;
+                    }
+                    return `<div class="item-effect ${effectClass}">${effectText}</div>`;
+                }).join('')}
+            </div>`;
+        }
         return `
             <div class="item" data-item-id="${item.details.id}" data-sub-type="${item.details.subType}">
                 <div class="item-info">
                     <h4>${item.details.name}</h4>
                     <p>${item.details.description}</p>
+                    ${effectsHTML}
                     <div class="item-meta">
                         <span class="item-quantity">x${item.quantity}</span>
                     </div>

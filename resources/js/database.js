@@ -107,7 +107,7 @@ export const abilities = [
         costValue: 2,
         costType: "MP",
         target: "ENEMY",
-        usage: "COMBAT",
+        usage: "BATTLE",
         effects: ["effect-poisoned"]
     }
 ];
@@ -118,7 +118,7 @@ export const effects = [
         id: "effect-poisoned",
         name: "Poisoned",
         description: "Does 2 damage every second for 10 seconds",
-        usage: "DAMAGE_OVER_TIME",
+        usage: "DAMAGE_TICK",
         duration: 10000,
         hasDuration: true,
         value: 2,
@@ -209,7 +209,7 @@ export const items = [
         name: 'Gold Coin',
         description: "The dungeon's currency",
         type: 'Miscellaneous',
-        subType: 'Costs'
+        subType: 'Currencies'
     },
     {
         id: 'item-small_hp_potion',
@@ -248,8 +248,8 @@ export const items = [
         subType: 'Weapons',
         description: 'An ordinary sword',
         effects: [
-            { type: 'MODIFIER', id: 'attack', value: 15 },
-            { type: 'MODIFIER', id: 'attackSpeed', value: 2000 }
+            { type: 'MODIFIER', id: 'attack', value: 15, isDebuff: false },
+            { type: 'MODIFIER', id: 'attackSpeed', value: 2000, isDebuff: true }
         ]
     },
     {
@@ -259,9 +259,9 @@ export const items = [
         subType: 'Weapons',
         description: 'An ordinary rapier',
         effects: [
-            { type: 'MODIFIER', id: 'attack', value: 2 },
-            { type: 'MODIFIER', id: 'attackSpeed', value: -1000 },
-            { type: 'EFFECT', id: 'effect-poisoned', value: 0.9, usage: "ON_ATTACK", target: "ENEMY" }
+            { type: 'MODIFIER', id: 'attack', value: 2, isDebuff: false },
+            { type: 'MODIFIER', id: 'attackSpeed', value: -1000, isDebuff: false },
+            { type: 'EFFECT', id: 'effect-poisoned', value: 0.9, usage: "ON_ATTACK", target: "ENEMY", isDebuff: false }
         ]
     },
     {
