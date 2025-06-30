@@ -203,6 +203,23 @@ export const events = [
 ]
 
 //@title ITEMS
+function generatePurifiersFromEffects() {
+    return effects
+        .filter(effect => effect.isDebuff)
+        .map(effect => ({
+            id: `item-cure_${effect.id.replace('effect-', '')}`,
+            name: `${effect.name} Antidote`,
+            description: `Removes the "${effect.name}" effect`,
+            price: 40,
+            currency: 'currency-gold_coin',
+            type: 'Consumables',
+            subType: 'Purifiers',
+            effect: { 
+                type: "EFFECT", id: effect.id, value: 1
+            }
+        }));
+}
+
 export const items = [
     {
         id: 'currency-gold_coin',
@@ -231,16 +248,7 @@ export const items = [
         subType: 'Restores HP',
         effect: { value: 0.50 }
     },
-    {
-        id: 'item-antidote',
-        name: 'Cure Poison Potion',
-        description: 'Removes the "Poisoned" effect',
-        price: 35,
-        currency: 'currency-gold_coin',
-        type: 'Consumables',
-        subType: 'Purifiers',
-        effect: { type: "EFFECT", id: "effect-poisoned", value: 1 }
-    },
+    ...generatePurifiersFromEffects(),
     {
         id: 'weapon-sword',
         name: 'Sword',

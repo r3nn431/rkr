@@ -1260,12 +1260,14 @@ export class Player {
         this.inventory.equipped.forEach(item => {
             item.effects.forEach(effect => {
                 if (effect.type === 'EFFECT' && effect.usage === usage) {
-                    if (effect.target === 'SELF') this.addEffect(effect.id);
-                    if (effect.target === 'ENEMY') enemy.addEffect(effect.id);
+                    const chanceToApply = effect.value !== undefined ? effect.value : 1;
+                    if (Math.random() <= chanceToApply) {
+                        if (effect.target === 'SELF') this.addEffect(effect.id);
+                        if (effect.target === 'ENEMY') enemy.addEffect(effect.id);
+                    }
                 }
             });
         })
-
     }
 }
 
