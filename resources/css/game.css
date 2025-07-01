@@ -1584,3 +1584,133 @@ blockquote::after {
   font-weight: bold;
   text-shadow: 0 0 3px var(--text-glow);
 }
+
+/* SELLER */
+#seller-container {
+    max-height: 55vh;
+}
+
+.seller-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    margin-bottom: 15px;
+    background: rgba(43, 32, 21, 0.5);
+    border: 1px solid var(--primary-color);
+    transition: all 0.3s ease;
+}
+
+.seller-item:hover {
+    background: rgba(43, 32, 21, 0.8);
+    box-shadow: 0 0 10px rgba(212, 160, 23, 0.3);
+}
+
+.seller-item-info h4 {
+    color: var(--accent-color);
+    margin: 0 0 5px 0;
+    font-size: 1.1rem;
+}
+
+.seller-item-info p {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    padding-right: 15px;
+}
+
+.seller-item-price {
+    color: var(--secondary-color);
+    font-weight: bold;
+    margin-top: 5px !important;
+}
+
+.btn-buy {
+    background: rgba(76, 175, 80, 0.2);
+    border: 1px solid var(--success-color);
+    color: var(--success-color);
+    padding: 8px 15px;
+    font-family: 'Courier New', monospace;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 80px;
+    text-transform: uppercase;
+}
+
+.btn-buy:hover {
+    background: rgba(76, 175, 80, 0.4);
+}
+
+.btn-buy:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#btn-sell {
+    width: 100%;
+    padding: 12px;
+    margin-top: 20px;
+    background: rgba(69, 94, 7, 0.2);
+    border: 1px solid #68cf74;
+    color: #ffe8e8;
+    font-family: 'Courier New', monospace;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+#btn-sell:hover {
+    background: rgba(69, 94, 7, 0.4);
+}
+
+.seller-gold-display {
+    background: rgba(43, 32, 21, 0.7);
+    border: 1px solid var(--accent-color);
+    padding: 12px;
+    margin-bottom: 15px;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 0 10px rgba(212, 160, 23, 0.2);
+}
+
+.seller-gold-display::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--accent-color), transparent);
+}
+
+.seller-gold-display::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--accent-color), transparent);
+}
+
+.gold-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 1.1rem;
+    color: var(--accent-color);
+    text-shadow: 0 0 5px var(--text-glow);
+}
+
+.gold-info .material-icons {
+    color: var(--accent-color);
+    font-size: 1.5rem;
+    font-variation-settings: 'FILL' 1;
+}
+
+#seller-current-gold {
+    font-weight: bold;
+    color: #ffd700;
+    text-shadow: 0 0 5px rgba(255, 215, 0, 0.7);
+}

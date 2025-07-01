@@ -172,7 +172,8 @@ export const events = [
         img: "chest.png",
         actionName: "OPEN",
         moveType: "FIXED",
-        startPosition: "MIDDLE"
+        startPosition: "MIDDLE",
+        isEnemySize: true
     },
     {
         id: "event-trap",
@@ -183,7 +184,8 @@ export const events = [
         actionName: "DODGE",
         moveType: "HORIZONTAL",
         moveSpeed: 250,
-        attack: 30
+        attack: 30,
+        isEnemySize: false
     },
     {
         id: 'outcome-enemy',
@@ -192,6 +194,16 @@ export const events = [
     {
         id: 'outcome-nothing',
         rarity: 5
+    },
+    {
+        id: 'event-seller',
+        rarity: 25,
+        name: 'Goblin Salesman',
+        img: 'seller.png',
+        actionName: 'TRADE',
+        moveType: 'FIXED',
+        startPosition: 'MIDDLE',
+        isEnemySize: true
     }
 ]
 
@@ -220,9 +232,18 @@ export const items = [
         subType: 'Currencies'
     },
     {
+        id: 'valuable-ruby',
+        name: 'Ruby',
+        description: "A rare gemstone. Sell for 100 gold coins.",
+        price: 100,
+        type: 'Miscellaneous',
+        subType: 'Valuables'
+    },
+    {
         id: 'item-small_hp_potion',
         name: 'Minor Vitality Potion',
         description: 'Restores 15% of your maximum HP',
+        rarity: 1,
         price: 30,
         currency: 'currency-gold_coin',
         type: 'Consumables',
@@ -233,6 +254,7 @@ export const items = [
         id: 'item-medium_hp_potion',
         name: 'Greater Vitality Potion',
         description: 'Restores 50% of your maximum HP',
+        rarity: 3,
         price: 60,
         currency: 'currency-gold_coin',
         type: 'Consumables',
@@ -243,6 +265,7 @@ export const items = [
         id: 'item-full_hp_potion',
         name: 'Elixir of Renewal',
         description: 'Restores 100% of your maximum HP',
+        rarity: 5,
         price: 140,
         currency: 'currency-gold_coin',
         type: 'Consumables',
@@ -253,6 +276,7 @@ export const items = [
         id: 'item-small_mp_potion',
         name: 'Minor Arcane Potion',
         description: 'Restores 15% of your maximum MP',
+        rarity: 2,
         price: 50,
         currency: 'currency-gold_coin',
         type: 'Consumables',
@@ -263,6 +287,7 @@ export const items = [
         id: 'item-medium_mp_potion',
         name: 'Greater Arcane Potion',
         description: 'Restores 50% of your maximum MP',
+        rarity: 5,
         price: 90,
         currency: 'currency-gold_coin',
         type: 'Consumables',
@@ -273,6 +298,7 @@ export const items = [
         id: 'item-full_mp_potion',
         name: 'Elixir of Enlightenment',
         description: 'Restores 100% of your maximum MP',
+        rarity: 7,
         price: 170,
         currency: 'currency-gold_coin',
         type: 'Consumables',

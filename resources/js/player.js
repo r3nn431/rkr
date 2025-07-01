@@ -147,6 +147,7 @@ export class Player {
         this.effectsModifiers = {};
         this.currentTargetingAbility = null;
         this.unlockedRecipes = {};
+        this.thiefLoot = [];
         this.isDead = false;
         this.startPlaytime();
     }

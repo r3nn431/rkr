@@ -1,6 +1,6 @@
 // js/event.js
 import * as db from './database.js';
-import { ensureValidSidePanel, getWeightedRandom, logError, showDamageNumber } from './utils.js';
+import { changePnl, ensureValidSidePanel, getWeightedRandom, logError, showDamageNumber } from './utils.js';
 import { Enemy, enemies, clearAllEnemies, callEnemy } from './enemy.js';
 import { config, playSFX, showDialog } from './config.js';
 import { player } from './player.js';
@@ -22,12 +22,18 @@ export class Event {
         this.startPosition = data.startPosition || null;
         this.disableAdvance = data.disableAdvance || false;
         this.loot = data.loot || [];
+        this.isEnemySize = data.isEnemySize || false;
+        
+        // SELLER
+        this.valuablesList = [];
+        this.totalValue = 0;
+        if (this.templateId === 'event-seller') this.setupSeller();
         
         events.push(this);
         if (this.disableAdvance) document.getElementById('btn-advance').disabled = true;
         this.element = document.createElement('div');
         this.element.className = 'event-container';
-        if (this.templateId === 'event-chest') this.element.style.height = '30vh';
+        if (this.isEnemySize) this.element.style.height = '30vh';
         this.createUI();
         this.setupLocation();
         this.startMovement();
@@ -327,7 +333,7 @@ export class Event {
             events.splice(index, 1);
         }
         this.element = null;
-        if (!events.some(e => e.templateId === 'trap')) {
+        if (!events.some(e => e.disableAdvance)) {
             document.getElementById('btn-advance').disabled = false;
         }
         ensureValidSidePanel();
@@ -372,11 +378,119 @@ export class Event {
         }
     }
 
+    //@title SELLER
+    generateSellerItems() {
+        const sellableItems = db.items.filter(item => item.rarity > 0 && item.price && item.currency);
+        sellableItems.sort((a, b) => a.rarity - b.rarity);
+        const itemsToSell = [];
+        const numItems = 3 + Math.floor(Math.random() * 4);
+        for (let i = 0; i < numItems; i++) {
+            const weightedRandom = Math.pow(Math.random(), 2);
+            const index = Math.floor(weightedRandom * sellableItems.length);
+            if (sellableItems[index] && !itemsToSell.includes(sellableItems[index])) {
+                itemsToSell.push(sellableItems[index]);
+            } else {
+                i--;
+            }
+        }
+        return itemsToSell;
+    }
+
+    setupSeller() {
+        const sellerContainer = document.getElementById('seller-container');
+        sellerContainer.innerHTML = '';
+
+        const itemsToBuy = this.generateSellerItems();
+        itemsToBuy.forEach(item => {
+            const currency = db.items.find(i => i.id === item.currency);
+            const currencyName = currency ? currency.name : 'Currency';
+            const itemElement = document.createElement('div');
+            itemElement.className = 'seller-item';
+            itemElement.innerHTML = `
+                <div class="seller-item-info">
+                    <h4>${item.name}</h4>
+                    <p>${item.description}</p>
+                    <p class="seller-item-price">Price: ${item.price} ${currencyName}s</p>
+                </div>
+                <button class="btn-buy" data-item-id="${item.id}" data-price="${item.price}" data-currency="${item.currency}">
+                    BUY
+                </button>
+            `;
+            sellerContainer.appendChild(itemElement);
+        });
+        this.updateGoldCoins();
+        document.querySelectorAll('.btn-buy').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const itemId = btn.dataset.itemId;
+                const price = parseInt(btn.dataset.price);
+                const currency = btn.dataset.currency;
+                this.handleBuyItem(itemId, price, currency);
+            });
+        });
+
+        this.updateSellButton();
+        document.getElementById('btn-sell').addEventListener('click', () => {
+            this.valuablesList.forEach(item => { player.removeItem(item.id, item.quantity) });
+            player.addItem('currency-gold_coin', this.totalValue);
+            showDialog(`Sold all valuables for ${this.totalValue} gold!`);
+            player.updateInventoryUI();
+            this.updateSellButton();
+        });
+    }
+
+    updateGoldCoins() {
+        document.getElementById('seller-current-gold').textContent = player.getItemQuantity('currency-gold_coin');
+    }
+
+    updateSellButton() {
+        this.updateGoldCoins();
+        const btnSell = document.getElementById('btn-sell');
+        this.totalValue = 0;
+        this.valuablesList = [];
+
+        const inventoryItems = Object.values(player.inventory.items);
+        const valuables = inventoryItems.filter(item => { return item.details?.subType === 'Valuables' });
+        valuables.forEach(item => {
+            if (item.details?.price) {
+                const itemValue = item.details.price * item.quantity;
+                this.totalValue += itemValue;
+                this.valuablesList.push({
+                    id: item.details.id,
+                    name: item.details.name,
+                    quantity: item.quantity,
+                    value: itemValue
+                });
+            }
+        });
+
+        if (valuables.length === 0 || this.totalValue === 0) {
+            btnSell.disabled = true;
+            btnSell.textContent = `SELL ALL VALUABLES (+0 coins)`;
+        } else {
+            btnSell.disabled = false;
+            btnSell.textContent = `SELL ALL VALUABLES (+${this.totalValue} coins)`;
+        }
+    }
+
+    handleBuyItem(itemId, price, currency) {
+        const playerCurrency = player.getItemQuantity(currency);
+        if (playerCurrency < price) {
+            showDialog(`You don't have enough ${db.items.find(i => i.id === currency)?.name || 'currency'}s to buy this!`);
+            return;
+        }
+        const item = db.items.find(i => i.id === itemId);
+        player.removeItem(currency, price);
+        player.addItem(itemId, 1);
+        showDialog(`You bought ${item.name}!`);
+        player.updateInventoryUI();
+        this.updateGoldCoins();
+    }
+
     //@title ACTIONS
     handleAction() {
-        this.destroy();
         switch(this.templateId) {
             case 'event-chest': {
+                this.destroy();
                 const subEvent = getWeightedRandom(this.subEvents);
                 if (subEvent.id === 'mimic') {
                     showDialog('The chest was a mimic!');
@@ -395,7 +509,28 @@ export class Event {
                 break;
             }
             case 'event-trap': {
+                this.destroy();
                 showDialog(`You successfully avoided a trap!`);
+                break;
+            }
+            case 'event-bee': {
+                this.destroy();
+                showDialog('You angered the bee!');
+                callEnemy('enemy-bee');
+                break;
+            }
+            case 'event-thief': {
+                this.destroy();
+                if (player.getAttributeValue('dexterity') >= 60) {
+                    showDialog('You managed to catch the thief!');
+                    callEnemy('enemy-thief');
+                } else {
+                    showDialog('The thief fled!');
+                }
+                break;
+            }
+            case 'event-seller': {
+                changePnl(document.getElementById('seller'), Array.from(document.querySelectorAll('[data-pages="side"]')));
                 break;
             }
         }

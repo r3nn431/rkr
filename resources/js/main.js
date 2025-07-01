@@ -323,6 +323,14 @@ function advance() {
                 // show event bee if queen bee is alive, if not call bee swarm
                 break;
             }
+            case 'event-thief':{
+                break;
+            }
+            case 'event-seller': {
+                showDialog('The Goblin Salesman is looking to do business...');
+                callEvent('event-seller');
+                break;
+            }
             default: {
                 showDialog('You keep going...');
                 break;
