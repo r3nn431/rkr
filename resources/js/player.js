@@ -169,6 +169,7 @@ export class Player {
         this.updateInventoryUI();
         this.updateAbilitiesUI();
         this.updateEffectsUI();
+        this.updateRecipesUI();
     }
 
     formatAttributeValue(value, isPercentage, isSkill) {
@@ -1064,7 +1065,7 @@ export class Player {
                     return true;
                 }
             }
-            case 'ENHANCERS': {
+            case 'ENHANCERS': { //@todo strange potion, reset ap
             }
             case 'SCROLLS': {
             }
@@ -1271,6 +1272,135 @@ export class Player {
             });
         })
     }
+
+    //@title CRAFTING/RECIPES
+    canCraft(recipeId) {
+        const recipe = db.recipes.find(r => r.id === recipeId);
+        if (!recipe) return false;
+        for (const ingredient of recipe.ingredients) {
+            if (this.getItemQuantity(ingredient.id) < ingredient.quantity) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    craftItem(recipeId) {
+        if (!this.canCraft(recipeId)) {
+            showDialog(`You don't have the required ingredients to craft this item.`, {doLog: false});
+            return false;
+        }
+        const recipe = db.recipes.find(r => r.id === recipeId);
+        if (!recipe) return false;
+        
+        for (const ingredient of recipe.ingredients) {
+            this.removeItem(ingredient.id, ingredient.quantity);
+        }
+        const skillLevel = this[recipe.skill].value;
+        const requiredLevel = recipe.skillLevel;
+        const successChance = Math.min(0.7 + (skillLevel - requiredLevel) * 0.1, 0.95);
+        const isSuccess = Math.random() <= successChance;
+        const resultId = isSuccess ? recipe.result : recipe.failure;
+        this.addItem(resultId, 1);
+        const xpGain = isSuccess ? 50 : 20;
+        this.addSkillXp(recipe.skill, xpGain);
+
+        const resultItem = db.items.find(i => i.id === resultId);
+        const recipeItem = db.items.find(i => i.id === recipe.result);
+        const message = isSuccess 
+            ? `Successfully crafted ${recipeItem.name}!` 
+            : `Crafting failed! Created ${resultItem.name} instead.`;
+        showDialog(message);
+        this.updateInventoryUI();
+        this.updateRecipesUI();
+        return true;
+    }
+
+    createRecipeHTML(recipe) {
+        const canCraft = this.canCraft(recipe.id);
+        const resultItem = db.items.find(i => i.id === recipe.result);
+        const failureItem = db.items.find(i => i.id === recipe.failure);
+        
+        const ingredientsHTML = recipe.ingredients.map(ing => {
+            const currentQty = this.getItemQuantity(ing.id);
+            const remaining = currentQty - ing.quantity;
+            const hasEnough = currentQty >= ing.quantity;
+            const item = db.items.find(i => i.id === ing.id);
+            return `
+            <div class="ingredient ${hasEnough ? '' : 'ingredient-missing'}">
+                <span class="ingredient-name">${item?.name || ing.id}:</span>
+                <span class="ingredient-qty">${ing.quantity}</span>
+                <span class="ingredient-own">(Has: ${currentQty} → ${remaining >= 0 ? remaining : 'X'})</span>
+            </div>
+            `;
+        }).join('');
+        
+        return `
+            <div class="recipe-item" data-recipe-id="${recipe.id}">
+            <div class="recipe-header">
+                <h5>${resultItem.name}</h5>
+                <span class="recipe-skill">${recipe.skill} Lv.${recipe.skillLevel}</span>
+            </div>
+            <p class="recipe-desc">${resultItem.description}</p>
+            <div class="recipe-ingredients">
+                <h6>Ingredients:</h6>
+                ${ingredientsHTML}
+            </div>
+            <div class="recipe-failure">
+                <h6>On failure:</h6>
+                <div>${failureItem.name}</div>
+            </div>
+            <button class="btn-craft" ${canCraft ? '' : 'disabled'}>
+                ${canCraft ? 'Craft' : 'Cannot Craft'}
+            </button>
+            </div>
+        `;
+    }
+
+    updateRecipesUI() {
+        const container = document.getElementById('recipes-container');
+        if (!container) return;
+        
+        const categorizedRecipes = {};
+
+        const unlockedRecipes = db.recipes.filter(recipe => this.unlockedRecipes[recipe.id]);
+        unlockedRecipes.forEach(recipe => {
+            const category = recipe.skill === 'alchemy' ? 'Mixtures' : 'Crafting';
+            if (!categorizedRecipes[category]) {
+                categorizedRecipes[category] = [];
+            }
+            categorizedRecipes[category].push(recipe);
+        });
+        
+        let html = '';
+        for (const [category, recipes] of Object.entries(categorizedRecipes)) {
+            html += `
+            <div class="recipe-category">
+                <h4 class="category-title">${category.toUpperCase()}</h4>
+                ${recipes.map(recipe => this.createRecipeHTML(recipe)).join('')}
+            </div>
+            `;
+        }
+        container.innerHTML = html;
+        container.querySelectorAll('.btn-craft').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const recipeId = e.target.closest('.recipe-item').dataset.recipeId;
+                this.craftItem(recipeId);
+            });
+        });
+    }
+
+    learnRecipe(recipeId) {
+        if (this.unlockedRecipes[recipeId]) return false;
+        const recipe = db.recipes.find(r => r.id === recipeId);
+        if (!recipe) return false;
+        
+        this.unlockedRecipes[recipeId] = true;
+        //showDialog(`Learned new recipe: ${db.items.find(i => i.id === recipe.result)?.name || 'Unknown'}`);
+        showToast('New recipe!', 'added', {targetElement: document.getElementById('btn-recipes')});
+        this.updateRecipesUI();
+        return true;
+    }
 }
 
 //@title OUTSIDE CLASS FUNCTIONS
@@ -1305,7 +1435,9 @@ function playerDebug(){
     db.items.forEach(item => {
         player.addItem(item.id);
     });
-    player.showAttributesControls();
+    db.recipes.forEach(recipe => {
+        player.learnRecipe(recipe.id);
+    });
 }
 
 export { player };

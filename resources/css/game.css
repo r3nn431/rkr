@@ -1714,3 +1714,128 @@ blockquote::after {
     color: #ffd700;
     text-shadow: 0 0 5px rgba(255, 215, 0, 0.7);
 }
+
+/* RECIPES */
+.recipe-category {
+    margin-bottom: 25px;
+}
+
+.recipe-item {
+    margin: 10px 0;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--primary-color);
+    position: relative;
+}
+
+.recipe-item.recipe-level-too-low {
+    opacity: 0.6;
+    border-color: var(--error-color);
+}
+
+.recipe-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.recipe-header h5 {
+    color: var(--accent-color);
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.recipe-skill {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.recipe-desc {
+    margin: 10px 0;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.recipe-ingredients, .recipe-result {
+  margin: 15px 0;
+}
+
+.recipe-ingredients h6, .recipe-result h6 {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    margin-bottom: 5px;
+    border-bottom: 1px solid rgba(139, 90, 43, 0.3);
+    padding-bottom: 3px;
+}
+
+.btn-craft {
+    width: 100%;
+    padding: 8px;
+    margin-top: 10px;
+    background: rgba(0, 255, 221, 0.1);
+    border: 1px solid var(--accent-color);
+    color: var(--accent-color);
+    font-family: 'Courier New', monospace;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+}
+
+.btn-craft:hover {
+    background: rgba(0, 255, 221, 0.3);
+}
+
+.btn-craft:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.ingredient {
+    display: flex;
+    gap: 8px;
+    padding: 5px;
+    font-size: 0.85rem;
+    align-items: center;
+}
+
+.ingredient-name {
+    flex: 2;
+    color: var(--text-primary);
+}
+
+.ingredient-qty {
+    flex: 0 0 30px;
+    text-align: right;
+    color: var(--accent-color);
+    font-weight: bold;
+}
+
+.ingredient-own {
+    flex: 3;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.ingredient-missing .ingredient-own {
+    color: var(--error-color);
+}
+
+.recipe-failure {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed rgba(139, 90, 43, 0.3);
+}
+
+.recipe-failure h6 {
+    color: var(--error-color);
+}
+
+.recipe-failure div {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}

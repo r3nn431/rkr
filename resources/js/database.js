@@ -212,7 +212,7 @@ function generatePurifiersFromEffects() {
     return effects
         .filter(effect => effect.isDebuff)
         .map(effect => ({
-            id: `item-cure_${effect.id.replace('effect-', '')}`,
+            id: `potion-cure_${effect.id.replace('effect-', '')}`,
             name: `Cure ${effect.relativeName} Potion`,
             description: `Removes the "${effect.name}" effect`,
             price: 40,
@@ -224,6 +224,7 @@ function generatePurifiersFromEffects() {
 }
 
 export const items = [
+    //@subtitle Miscellaneous
     {
         id: 'currency-gold_coin',
         name: 'Gold Coin',
@@ -240,7 +241,16 @@ export const items = [
         subType: 'Valuables'
     },
     {
-        id: 'item-small_hp_potion',
+        id: 'valuable-diamond',
+        name: 'Diamond',
+        description: "A very rare gemstone. Sell for 500 gold coins.",
+        price: 500,
+        type: 'Miscellaneous',
+        subType: 'Valuables'
+    },
+    //@subtitle Consumables
+    {
+        id: 'potion-small_hp',
         name: 'Minor Vitality Potion',
         description: 'Restores 15% of your maximum HP',
         rarity: 1,
@@ -251,7 +261,7 @@ export const items = [
         effect: { value: 0.15 }
     },
     {
-        id: 'item-medium_hp_potion',
+        id: 'potion-medium_hp',
         name: 'Greater Vitality Potion',
         description: 'Restores 50% of your maximum HP',
         rarity: 3,
@@ -262,7 +272,7 @@ export const items = [
         effect: { value: 0.50 }
     },
     {
-        id: 'item-full_hp_potion',
+        id: 'potion-full_hp',
         name: 'Elixir of Renewal',
         description: 'Restores 100% of your maximum HP',
         rarity: 5,
@@ -273,7 +283,7 @@ export const items = [
         effect: { value: 1 }
     },
     {
-        id: 'item-small_mp_potion',
+        id: 'potion-small_mp',
         name: 'Minor Arcane Potion',
         description: 'Restores 15% of your maximum MP',
         rarity: 2,
@@ -284,7 +294,7 @@ export const items = [
         effect: { value: 0.15 }
     },
     {
-        id: 'item-medium_mp_potion',
+        id: 'potion-medium_mp',
         name: 'Greater Arcane Potion',
         description: 'Restores 50% of your maximum MP',
         rarity: 5,
@@ -295,7 +305,7 @@ export const items = [
         effect: { value: 0.50 }
     },
     {
-        id: 'item-full_mp_potion',
+        id: 'potion-full_mp',
         name: 'Elixir of Enlightenment',
         description: 'Restores 100% of your maximum MP',
         rarity: 7,
@@ -307,7 +317,73 @@ export const items = [
     },
     ...generatePurifiersFromEffects(),
     {
-        id: 'weapon-sword',
+        id: 'potion-curse_dispel',
+        name: 'Curse Dispel Potion',
+        description: 'Removes a random curse from you',
+        type: 'Consumables',
+        subType: 'Purifiers',
+        effect: { type: 'CURSE' }
+    },
+    {
+        id: 'potion-strange',
+        name: 'Strange Potion',
+        description: 'A failed potion with unpredictable effects',
+        type: 'Consumables',
+        subType: 'Enhancers'
+    },
+    {
+        id: 'potion-reset_ap',
+        name: 'Potion of Doubt',
+        description: 'Resets all your attributes to 1 and gives your points back',
+        type: 'Consumables',
+        subType: 'Enhancers'
+    },
+    {
+        id: 'scroll-teleport',
+        name: 'Teleport Scroll',
+        description: 'Teleports you further into the dungeon ending your current battle',
+        type: 'Consumables',
+        subType: 'Scrolls',
+        rarity: 3,
+        price: 50,
+        currency: 'currency-gold_coin',
+        effect: { type: 'TELEPORT', usage: 'ANY' }
+    },
+    {
+        id: 'scroll-summon_seller',
+        name: 'Summon Seller Scroll',
+        description: 'If not in a battle, summons the Goblin Salesman',
+        type: 'Consumables',
+        subType: 'Scrolls',
+        rarity: 1,
+        price: 30,
+        currency: 'currency-gold_coin',
+        effect: { type: 'SUMMON_ID', list: 'events', id: 'event-seller', usage: 'SAFE' }
+    },
+    {
+        id: 'scroll-summon_mutant',
+        name: 'Summon Mutant Scroll',
+        description: 'If not in a battle, summons a mutant enemy',
+        type: 'Consumables',
+        subType: 'Scrolls',
+        rarity: 1,
+        price: 15,
+        currency: 'currency-gold_coin',
+        effect: { type: 'SUMMON_TYPE', list: 'enemies', id: 'MUTANT', usage: 'SAFE' }
+    },
+    //@subtitle Equipments
+    {
+        id: 'acessory-amulet_const',
+        name: 'Amulet of Constitution',
+        type: 'Equipments',
+        subType: 'Accessories',
+        description: 'Increases your constitution by 5 points',
+        effects: [
+            { type: 'MODIFIER', id: 'constitution', value: 5, isDebuff: false }
+        ]
+    },
+    {
+        id: 'weapon-basic_sword',
         name: 'Sword',
         type: 'Equipments',
         subType: 'Weapons',
@@ -318,11 +394,11 @@ export const items = [
         ]
     },
     {
-        id: 'weapon-rapier',
-        name: 'Rapier',
+        id: 'weapon-dagger',
+        name: 'Dagger',
         type: 'Equipments',
         subType: 'Weapons',
-        description: 'An ordinary rapier',
+        description: 'An ordinary dagger',
         effects: [
             { type: 'MODIFIER', id: 'attack', value: 2, isDebuff: false },
             { type: 'MODIFIER', id: 'attackSpeed', value: -1000, isDebuff: false },
@@ -339,28 +415,120 @@ export const items = [
             { type: 'MODIFIER', id: 'defense', value: 3 }
         ]
     },
+    //@subtitle Resources
+    {
+        id: 'resource-soul_residue',
+        name: 'Soul Residue',
+        description: 'A fragment of a fallen enemy\'s soul',
+        type: "Resources",
+        subType: "Common"
+    },
+    {
+        id: 'resource-bone_fragment',
+        name: 'Bone Fragment',
+        description: 'A fragment of bone from a fallen enemy',
+        type: "Resources",
+        subType: "Common"
+    },
+    {
+        id: 'resource-toxic_gland',
+        name: 'Toxic Gland',
+        description: 'A poisonous gland extracted from a venomous creature',
+        type: "Resources",
+        subType: "Common"
+    },
+    {
+        id: 'resource-rags',
+        name: 'Rags',
+        description: 'Pieces of clothing',
+        type: "Resources",
+        subType: "Common"
+    },
+    {
+        id: 'resource-iron_ore',
+        name: 'Iron Ore',
+        description: 'A chunk of unrefined iron ore',
+        type: "Resources",
+        subType: "Common"
+    },
+    {
+        id: 'resource-mystic_shard',
+        name: 'Mystic Shard',
+        description: 'A crystal shard imbued with arcane energy',
+        type: "Resources",
+        subType: "Rare",
+        rarity: 5,
+        price: 60,
+        currency: 'currency-gold_coin'
+    },
+    {
+        id: 'resource-honey',
+        name: 'Honey',
+        description: 'A sweet honey produced by bees',
+        type: "Resources",
+        subType: "Rare",
+        rarity: 7,
+        price: 160,
+        currency: 'currency-gold_coin'
+    }
 ];
 
 //@title RECIPES
-export const recipes = [];
+export const recipes = [
+    //@subtitle Alchemy - Mixtures
+    {
+        id: "mixture-small_hp",
+        skill: "alchemy",
+        skillLevel: 1,
+        ingredients: [
+            { id: "resource-toxic_gland", quantity: 1 }
+        ],
+        result: "potion-small_hp",
+        failure: "potion-strange"
+    },
+    {
+        id: "mixture-minor_mp",
+        skill: "alchemy",
+        skillLevel: 2,
+        ingredients: [
+            { id: "resource-mystic_shard", quantity: 1 }
+        ],
+        result: "potion-small_mp",
+        failure: "potion-strange"
+    },
+    //@subtitle Craftsmanship - Crafting
+    {
+        id: "craft-basic_sword",
+        skill: "craftsmanship",
+        skillLevel: 1,
+        ingredients: [
+            { id: "resource-iron_ore", quantity: 3 }
+        ],
+        result: "weapon-basic_sword",
+        failure: "resource-iron_ore"
+    }
+];
 
 //@title LOOT TABLES
 export const lootTables = {
     MUTANT: [
-        { id: "currency-gold_coin", quantity: 2, chance: 50 }
+        { id: "resource-bone_fragment", quantity: 1, chance: 100 }
     ],
     ANOMALY: [
-        { id: "currency-gold_coin", quantity: 5, chance: 40 }
+        { id: "resource-soul_residue", quantity: 1, chance: 100 },
+        { id: "resource-mystic_shard", quantity: 1, chance: 5 }
     ],
     UNDEAD: [
-        { id: "currency-gold_coin", quantity: 3, chance: 60 }
+        { id: "resource-bone_fragment", quantity: 1, chance: 100 },
+        { id: "resource-bone_fragment", quantity: 1, chance: 60 },
+        { id: "resource-rags", quantity: 1, chance: 40 },
     ],
     PLAGUED: [
         { id: "currency-gold_coin", quantity: 1, chance: 30 }
     ],
     CHEST: [
-        { id: "item-small_hp_potion", quantity: 1, chance: 80 },
-        { id: "item-small_hp_potion", quantity: 1, chance: 20 },
+        { id: "potion-small_hp", quantity: 1, chance: 80 },
+        { id: "potion-small_hp", quantity: 1, chance: 20 },
         { id: "currency-gold_coin", quantity: 1, chance: 100 },
         { id: "currency-gold_coin", quantity: 5, chance: 85 },
         { id: "currency-gold_coin", quantity: 3, chance: 65 }
