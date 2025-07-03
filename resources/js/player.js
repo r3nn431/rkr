@@ -129,6 +129,7 @@ export class Player {
             abilities: document.getElementById('abilities-container'),
             effects: document.getElementById('effects-container'),
             inventory: document.getElementById('inventory-container'),
+            recipes: document.getElementById('recipes-container'),
             log: document.getElementById('log-container')
         };
 
@@ -144,7 +145,6 @@ export class Player {
         this.kills = {};
         this.abilities = {};
         this.activeEffects = {};
-        this.effectsModifiers = {};
         this.currentTargetingAbility = null;
         this.unlockedRecipes = {};
         this.thiefLoot = [];
@@ -164,7 +164,6 @@ export class Player {
         attributes.forEach(attr => {
             this.updateAttributeUi(attr.name);
         });
-        //this.elements.crit.textContent = `${this.criticalChance}% (${this.criticalMultiplier})` || 0;
         
         this.updateInventoryUI();
         this.updateAbilitiesUI();
@@ -187,7 +186,6 @@ export class Player {
         const formattedValue = this.formatAttributeValue(value, def.isPercentage, def.isSkill);
         
         this.elements[attr].textContent = formattedValue;
-        //this.elements.crit.textContent = `${this.criticalChance}% (${this.criticalMultiplier})` || 0;
         
         if (def.isSkill) {
             this.elements[`${attr}Xp`].textContent = `| XP ${this[attr].xp}/${this[attr].nextXp}`;
@@ -288,8 +286,8 @@ export class Player {
             skill.xp -= skill.nextXp;
             skill.value++;
             skill.nextXp = Math.floor(skill.nextXp * 1.2);
-            this.updateAttributeUi(name);
         }
+        this.updateAttributeUi(name);
     }
 
     addXp(amount) {
@@ -315,7 +313,6 @@ export class Player {
 
     applyModifier(attribute, amount = 1, isTemporary = false) {
         if (attribute == null) {
-            //const randomAttribute = attributes[Math.floor(Math.random() * attributes.length)];
             const randomAttribute = getWeightedRandom(attributes);
             attribute = randomAttribute.name;
         }
@@ -563,7 +560,6 @@ export class Player {
                 break;
             }
         }
-        //if (ability.useCondition) {}
         if (!this.verifyPowerCost(ability)) {
             showDialog('You can not pay the cost for this power.', {doLog: false});
             return false;
@@ -1066,8 +1062,10 @@ export class Player {
                 }
             }
             case 'ENHANCERS': { //@todo strange potion, reset ap
+                break;
             }
             case 'SCROLLS': {
+                break;
             }
             default: {
                 logError(new Error(`Unknown item subtype: ${itemSubType}`));
@@ -1265,8 +1263,8 @@ export class Player {
                 if (effect.type === 'EFFECT' && effect.usage === usage) {
                     const chanceToApply = effect.value !== undefined ? effect.value : 1;
                     if (Math.random() <= chanceToApply) {
-                        if (effect.target === 'SELF') this.addEffect(effect.id);
-                        if (effect.target === 'ENEMY') enemy.addEffect(effect.id);
+                        if (effect.target === 'SELF' && this.canReceiveEffect(effect.id)) this.addEffect(effect.id);
+                        if (effect.target === 'ENEMY' && enemy.canReceiveEffect(effect.id)) enemy.addEffect(effect.id);
                     }
                 }
             });
@@ -1300,15 +1298,25 @@ export class Player {
         const requiredLevel = recipe.skillLevel;
         const successChance = Math.min(0.7 + (skillLevel - requiredLevel) * 0.1, 0.95);
         const isSuccess = Math.random() <= successChance;
-        const resultId = isSuccess ? recipe.result : recipe.failure;
+
+        let resultId;
+        if (isSuccess) {
+            resultId = recipe.result;
+        } else {
+            if (recipe.skill === 'alchemy') {
+                resultId = 'potion-strange';
+            } else {
+                resultId = recipe.ingredients[0].id;
+            }
+        }
+
         this.addItem(resultId, 1);
         const xpGain = isSuccess ? 50 : 20;
         this.addSkillXp(recipe.skill, xpGain);
 
         const resultItem = db.items.find(i => i.id === resultId);
-        const recipeItem = db.items.find(i => i.id === recipe.result);
         const message = isSuccess 
-            ? `Successfully crafted ${recipeItem.name}!` 
+            ? `Successfully crafted ${resultItem.name}!` 
             : `Crafting failed! Created ${resultItem.name} instead.`;
         showDialog(message);
         this.updateInventoryUI();
@@ -1319,7 +1327,6 @@ export class Player {
     createRecipeHTML(recipe) {
         const canCraft = this.canCraft(recipe.id);
         const resultItem = db.items.find(i => i.id === recipe.result);
-        const failureItem = db.items.find(i => i.id === recipe.failure);
         
         const ingredientsHTML = recipe.ingredients.map(ing => {
             const currentQty = this.getItemQuantity(ing.id);
@@ -1343,12 +1350,8 @@ export class Player {
             </div>
             <p class="recipe-desc">${resultItem.description}</p>
             <div class="recipe-ingredients">
-                <h6>Ingredients:</h6>
+                <h6>Required Items:</h6>
                 ${ingredientsHTML}
-            </div>
-            <div class="recipe-failure">
-                <h6>On failure:</h6>
-                <div>${failureItem.name}</div>
             </div>
             <button class="btn-craft" ${canCraft ? '' : 'disabled'}>
                 ${canCraft ? 'Craft' : 'Cannot Craft'}
@@ -1358,7 +1361,7 @@ export class Player {
     }
 
     updateRecipesUI() {
-        const container = document.getElementById('recipes-container');
+        const container = this.elements.recipes;
         if (!container) return;
         
         const categorizedRecipes = {};
@@ -1374,14 +1377,19 @@ export class Player {
         
         let html = '';
         for (const [category, recipes] of Object.entries(categorizedRecipes)) {
+            let tooltipText = category === 'Mixtures' ? 
+                'You may fail to create these potions depending on your Alchemy level, in which case you will create a Strange Potion instead of the desired potion' 
+                : 'You may fail to craft these equipment depending on your Craftsmanship level, if so you will get an item back instead of crafting the desired equipment';
+            const skill = category === 'Mixtures' ? 'alchemy' : 'craftsmanship';
             html += `
             <div class="recipe-category">
-                <h4 class="category-title">${category.toUpperCase()}</h4>
+                <h4 class="category-title tooltip" data-tooltip="${tooltipText}">${category.toUpperCase()} (${recipes.length}/${db.recipes.filter(r => r.skill === skill).length})</h4>
                 ${recipes.map(recipe => this.createRecipeHTML(recipe)).join('')}
             </div>
             `;
         }
         container.innerHTML = html;
+        attachTooltips();
         container.querySelectorAll('.btn-craft').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const recipeId = e.target.closest('.recipe-item').dataset.recipeId;
@@ -1396,7 +1404,6 @@ export class Player {
         if (!recipe) return false;
         
         this.unlockedRecipes[recipeId] = true;
-        //showDialog(`Learned new recipe: ${db.items.find(i => i.id === recipe.result)?.name || 'Unknown'}`);
         showToast('New recipe!', 'added', {targetElement: document.getElementById('btn-recipes')});
         this.updateRecipesUI();
         return true;
@@ -1426,6 +1433,8 @@ export function createPlayer() {
 
 function playerStartingItems() {
     player.addItem('currency-gold_coin', 10);
+    player.learnRecipe("mixture-small_hp");
+    player.learnRecipe("craft-basic_sword");
 }
 
 function playerDebug(){

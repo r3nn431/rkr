@@ -1824,18 +1824,3 @@ blockquote::after {
 .ingredient-missing .ingredient-own {
     color: var(--error-color);
 }
-
-.recipe-failure {
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px dashed rgba(139, 90, 43, 0.3);
-}
-
-.recipe-failure h6 {
-    color: var(--error-color);
-}
-
-.recipe-failure div {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-}

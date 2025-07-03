@@ -390,7 +390,7 @@ export const items = [
         description: 'An ordinary sword',
         effects: [
             { type: 'MODIFIER', id: 'attack', value: 15, isDebuff: false },
-            { type: 'MODIFIER', id: 'attackSpeed', value: 2000, isDebuff: true }
+            { type: 'MODIFIER', id: 'attackSpeed', value: 1000, isDebuff: true }
         ]
     },
     {
@@ -419,7 +419,7 @@ export const items = [
     {
         id: 'resource-soul_residue',
         name: 'Soul Residue',
-        description: 'A fragment of a fallen enemy\'s soul',
+        description: 'An enemy\'s soul residue',
         type: "Resources",
         subType: "Common"
     },
@@ -445,9 +445,16 @@ export const items = [
         subType: "Common"
     },
     {
-        id: 'resource-iron_ore',
-        name: 'Iron Ore',
-        description: 'A chunk of unrefined iron ore',
+        id: 'resource-broken_handle',
+        name: 'Broken Handle',
+        description: 'A broken handle from a weapon',
+        type: "Resources",
+        subType: "Common"
+    },
+    {
+        id: 'resource-rusty_blade',
+        name: 'Rusty Blade',
+        description: 'A rusty blade from a weapon',
         type: "Resources",
         subType: "Common"
     },
@@ -481,10 +488,9 @@ export const recipes = [
         skill: "alchemy",
         skillLevel: 1,
         ingredients: [
-            { id: "resource-toxic_gland", quantity: 1 }
+            { id: "resource-soul_residue", quantity: 1 }
         ],
-        result: "potion-small_hp",
-        failure: "potion-strange"
+        result: "potion-small_hp"
     },
     {
         id: "mixture-minor_mp",
@@ -493,8 +499,7 @@ export const recipes = [
         ingredients: [
             { id: "resource-mystic_shard", quantity: 1 }
         ],
-        result: "potion-small_mp",
-        failure: "potion-strange"
+        result: "potion-small_mp"
     },
     //@subtitle Craftsmanship - Crafting
     {
@@ -502,10 +507,10 @@ export const recipes = [
         skill: "craftsmanship",
         skillLevel: 1,
         ingredients: [
-            { id: "resource-iron_ore", quantity: 3 }
+            { id: "resource-broken_handle", quantity: 1 },
+            { id: "resource-rusty_blade", quantity: 1 }
         ],
-        result: "weapon-basic_sword",
-        failure: "resource-iron_ore"
+        result: "weapon-basic_sword"
     }
 ];
 

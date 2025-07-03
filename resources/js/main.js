@@ -224,6 +224,7 @@ document.getElementById('btn-menu-start').addEventListener('click', () => {
 });
 
 function startGame(){
+    document.body.classList.remove('player-dead');
     isLoading = true;
     document.getElementById('btn-advance').disabled = false;
     createPlayer();
