@@ -84,7 +84,7 @@ export function isBGSPlaying(name) {
     return activeBGSAudios[name] && !activeBGSAudios[name].paused;
 }
 
-function addToLog(text){
+export function addToLog(text){
     const logEntry = document.createElement('div');
     logEntry.className = 'log-entry';
     logEntry.innerHTML = processDialogText(text);
@@ -96,7 +96,6 @@ function addToLog(text){
     if (logContent.children.length > 100) {
         logContent.removeChild(logContent.lastChild);
     }
-    player.log.push(text);
 }
 
 function processDialogText(text) {
@@ -115,6 +114,7 @@ function finishDialog() {
 }
 
 export function showDialog(text, { speed = config.textSpeed, doLog = true } = {}) {
+    player.lastDialog = text;
     if (dialogTimer) {
         clearInterval(dialogTimer);
         dialogTimer = null;
@@ -122,7 +122,10 @@ export function showDialog(text, { speed = config.textSpeed, doLog = true } = {}
     } else {
         dialogBox.innerHTML = '';
     }
-    if (doLog) addToLog(text);
+    if (doLog) {
+        addToLog(text);
+        player.log.push(text);
+    }
     currentDialogText = text;
 
     const fullHtml = processDialogText(text);

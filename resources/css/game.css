@@ -1,5 +1,5 @@
 
-/* MENU */
+/* //@title MENU */
 #menu-container {
     position: relative;
     width: 100vw;
@@ -104,7 +104,7 @@
     100% { transform: translate(0); }
 }
 
-/* BUTTONS */
+/* //@title BUTTONS */
 .btns-icon {
     border-radius: 0;
     display: flex;
@@ -160,7 +160,7 @@
     box-shadow: none;
 }
 
-/* TIPOGRAPHY */
+/* //@title TIPOGRAPHY */
 #dialogbox {
     min-height: 30px;
     max-height: 20vh;
@@ -455,7 +455,7 @@ blockquote::after {
     background: linear-gradient(to top, #1a1715, transparent);
 }
 
-/* SIDE PAINEL */
+/* //@title SIDE PAINEL */
 .side-panel {
     width: 20vw;
     background-color: rgba(0, 0, 0, 0.7);
@@ -489,6 +489,10 @@ blockquote::after {
     overflow-y: auto;
     max-height: 66vh;
     margin-top: 10px;
+}
+
+.side-container p {
+    text-align: left;
 }
 
 .side-container:empty {
@@ -547,7 +551,7 @@ blockquote::after {
     font-size: 20px;
 }
 
-/* UI */
+/* //@title UI */
 .player-ui {
     display: flex;
     justify-content: space-between;
@@ -644,7 +648,160 @@ blockquote::after {
     z-index: 10;
 }
 
-/* ENEMY */
+/* //@title FILE SLOTS */
+#files-info {
+    margin-bottom: 20px;
+    font-style: italic;
+    color: var(--text-secondary);
+}
+
+.btns-icon.save-slot {
+    position: relative;
+    background: rgba(43, 32, 21, 0.3);
+    border: 1px solid var(--primary-color);
+    transition: all 0.3s ease;
+    text-align: left;
+    justify-content: flex-start;
+}
+
+.btns-icon.save-slot.empty {
+    background: rgba(43, 32, 21, 0.1);
+    border: 1px dashed var(--primary-color);
+    opacity: 0.7;
+}
+
+.btns-icon.save-slot.empty .material-icons {
+    opacity: 0.7;
+}
+
+.btns-icon.save-slot.empty span:last-child {
+    color: var(--text-secondary);
+}
+
+.btns-icon.save-slot:not(.empty):hover {
+    background: rgba(43, 32, 21, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+}
+
+.btns-icon.save-slot:not(.empty) .material-icons {
+    color: var(--accent-color);
+}
+
+#slot-container {
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid var(--primary-color);
+    padding: 15px;
+    margin-top: 10px;
+    animation: fadeIn 0.3s ease;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+    position: relative;
+}
+
+#slot-container::before {
+    content: "";
+    position: absolute;
+    top: -10px;
+    left: 20px;
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 10px solid var(--primary-color);
+}
+
+#slot-container h4 {
+    color: var(--accent-color);
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+    border-bottom: 1px solid rgba(0, 255, 221, 0.3);
+    padding-bottom: 5px;
+}
+
+#slot-container p {
+    margin: 5px 0;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+#slot-container p strong {
+    color: var(--accent-color);
+}
+
+/* //@title SETTINGS */
+.settings-content {
+    padding: 10px;
+}
+
+.setting-group {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(0, 255, 221, 0.3);
+}
+
+.setting-group h4 {
+    color: var(--accent-color);
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+}
+
+.setting-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    gap: 10px;
+}
+
+.setting-item label {
+    min-width: 120px;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.setting-item input[type="range"] {
+    flex-grow: 1;
+    margin: 0 10px;
+}
+
+.setting-item span {
+    min-width: 40px;
+    text-align: right;
+    color: var(--accent-color);
+}
+
+.setting-item.checkbox {
+    display: flex;
+    align-items: center;
+}
+
+.setting-item.checkbox input {
+    margin-right: 10px;
+    width: 20px;
+    height: 20px;
+}
+
+.setting-item select {
+    flex-grow: 1;
+    padding: 8px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--accent-color);
+    color: var(--text-primary);
+    font-family: 'Courier New', monospace;
+}
+
+.settings-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.settings-buttons button {
+    flex: 1;
+    padding: 8px;
+    font-size: 0.9rem;
+}
+
+/* //@title ENEMY */
 .enemy {
     position: absolute;
     width: 10vw;
@@ -901,7 +1058,7 @@ blockquote::after {
     100% { opacity: 0; transform: scale(1.5); }
 }
 
-/* EVENTS */
+/* //@title EVENTS */
 .event-container {
     position: absolute;
     width: 10vw;
@@ -975,7 +1132,7 @@ blockquote::after {
     transform: scale(0.95);
 }
 
-/* PLAYER */
+/* //@title PLAYER */
 .player-bar-container {
     width: 100%;
     margin: 10px 0;
@@ -989,80 +1146,7 @@ blockquote::after {
     position: relative;
 }
 
-/* SETTINGS STYLES */
-.settings-content {
-    padding: 10px;
-}
-
-.setting-group {
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid rgba(0, 255, 221, 0.3);
-}
-
-.setting-group h4 {
-    color: var(--accent-color);
-    margin-bottom: 15px;
-    font-size: 1.1rem;
-}
-
-.setting-item {
-    display: flex;
-    align-items: center;
-    margin-bottom: 15px;
-    gap: 10px;
-}
-
-.setting-item label {
-    min-width: 120px;
-    color: var(--text-primary);
-    font-size: 0.9rem;
-}
-
-.setting-item input[type="range"] {
-    flex-grow: 1;
-    margin: 0 10px;
-}
-
-.setting-item span {
-    min-width: 40px;
-    text-align: right;
-    color: var(--accent-color);
-}
-
-.setting-item.checkbox {
-    display: flex;
-    align-items: center;
-}
-
-.setting-item.checkbox input {
-    margin-right: 10px;
-    width: 20px;
-    height: 20px;
-}
-
-.setting-item select {
-    flex-grow: 1;
-    padding: 8px;
-    background-color: rgba(0, 0, 0, 0.5);
-    border: 1px solid var(--accent-color);
-    color: var(--text-primary);
-    font-family: 'Courier New', monospace;
-}
-
-.settings-buttons {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
-}
-
-.settings-buttons button {
-    flex: 1;
-    padding: 8px;
-    font-size: 0.9rem;
-}
-
-/* ABILITIES */
+/* //@title ABILITIES */
 .ability-category {
     margin-bottom: 25px;
 }
@@ -1185,7 +1269,7 @@ blockquote::after {
     background: rgba(0, 0, 0, 0.3);
 }
 
-/* INVENTORY */
+/* //@title INVENTORY */
 .category-title {
     color: var(--secondary-color);
     font-size: 1.1rem;
@@ -1390,7 +1474,7 @@ blockquote::after {
     pointer-events: none;
 }
 
-/* EFFECTS */
+/* //@title EFFECTS */
 .effect-item {
     display: flex;
     align-items: center;
@@ -1529,7 +1613,7 @@ blockquote::after {
     border: 1px solid var(--error-red);
 }
 
-/* ATTRIBUTES POINTS */
+/* //@title ATTRIBUTES POINTS */
 .attribute-row {
     display: flex;
     justify-content: space-between;
@@ -1585,7 +1669,7 @@ blockquote::after {
   text-shadow: 0 0 3px var(--text-glow);
 }
 
-/* SELLER */
+/* //@title SELLER */
 #seller-container {
     max-height: 55vh;
 }
@@ -1715,7 +1799,7 @@ blockquote::after {
     text-shadow: 0 0 5px rgba(255, 215, 0, 0.7);
 }
 
-/* RECIPES */
+/* //@title RECIPES */
 .recipe-category {
     margin-bottom: 25px;
 }

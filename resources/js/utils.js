@@ -8,7 +8,7 @@ let sharedTooltip;
 function showToast(message, type = 'info', options = {}) {
     const {
         duration = TOAST_DURATION,
-        position = 'bottom',
+        position = 'top',
         icon = null,
         targetElement = null,
         direction = 'left'

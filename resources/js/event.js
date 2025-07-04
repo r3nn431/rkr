@@ -34,12 +34,12 @@ export class Event {
         this.element = document.createElement('div');
         this.element.className = 'event-container';
         if (this.isEnemySize) this.element.style.height = '30vh';
-        this.createUI();
+        this.createUi();
         this.setupLocation();
         this.startMovement();
     }
 
-    createUI() {
+    createUi() {
         const actionBtnId = `event-btn-${Date.now()}`;
         this.element.innerHTML = `
             <p class="event-name">${this.name}</p>

@@ -26,6 +26,7 @@
           </div>
           <div class="menu-btns">
             <button id="btn-menu-start">Enter the dungeon</button>
+            <button id="btn-menu-continue" class="hidden">Continue last path</button>
             <button id="btn-menu-leave">Reconsider</button>
           </div>
           <p id="app-info">v<span id="version"></span> by r3nn431 | <a class="link" href="https://github.com/r3nn431/rkr" target="_blank">Official Page</a></p>
@@ -150,18 +151,19 @@
             <div id="files" class="hidden" data-pages="side">
               <h3>SAVE/LOAD</h3>
               <p id="files-info">Save your current progress or load your previous save</p>
-              <button class="btns-icon" id="btn-slot-0">
+              <button class="btns-icon save-slot" id="btn-slot-0">
                 <span class="material-icons">save</span>
                 <span>SLOT 0 - <span id="info-slot-0">EMPTY</span></span>
               </button>
-              <button class="btns-icon" id="btn-slot-1">
+              <button class="btns-icon save-slot" id="btn-slot-1">
                 <span class="material-icons">save</span>
                 <span>SLOT 1 - <span id="info-slot-1">EMPTY</span></span>
               </button>
-              <button class="btns-icon" id="btn-slot-2">
+              <button class="btns-icon save-slot" id="btn-slot-2">
                 <span class="material-icons">save</span>
                 <span>SLOT 2 - <span id="info-slot-2">EMPTY</span></span>
               </button>
+              <div id="slot-container"></div>
             </div>
             <div id="statistics" class="hidden" data-pages="side">
               <h3>STATISTICS</h3>

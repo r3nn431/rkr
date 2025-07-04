@@ -1,15 +1,15 @@
 // js/main.js
 import * as db from './database.js';
-import { config, CONFIG_PATH, settingsElements, audioBGM, playBGM, playSFX, showDialog } from './config.js';
+import { config, CONFIG_PATH, settingsElements, audioBGM, playBGM, playSFX, showDialog, addToLog } from './config.js';
 import { 
     showToast, togglePnl, changePnl, userConfirmation, formatDate, debounce, adjustReceivedData, logError, attachTooltips, getActivePnl, getWeightedRandom, ensureValidSidePanel, 
     setStorage, getStorage, getJsonFile, setJsonFile, verifyPath
 } from "./utils.js";
-import { player, createPlayer } from './player.js';
+import { player, createPlayer, COMMON_PATH, commonData } from './player.js';
 import { enemies, clearAllEnemies, callEnemy } from './enemy.js';
 import { events, clearAllEvents, callEvent } from './event.js';
 
-// NEUTRALINO FUNCTIONS
+//@title NEUTRALINO FUNCTIONS
 async function onWindowClose() {
     await userConfirmation('Exit game? All progress will be lost').then(async (result) => {
         if (result === 0) {
@@ -41,8 +41,9 @@ window.addEventListener('unhandledrejection', (event) => {
     logError(error, 'unhandledRejection');
 });
 
-// GAME
+//@title GAME
 const imgBackground = document.getElementById('bg');
+const pnlSlotInfo = document.getElementById(`slot-container`);
 const pnlMenu = document.getElementById('menu-content');
 const gamePnls = Array.from(document.querySelectorAll('[data-pages="main"]'));
 const sidePnls = Array.from(document.querySelectorAll('[data-pages="side"]'));
@@ -57,6 +58,7 @@ const titleWords = [
 ];
 let stepToggle = false;
 export let isLoading = true;
+let saveSlotsCache = Array(3).fill(null);
 
 function setBackground(name){
     document.getElementById('bg').src = `assets/img/bg/${name}`;
@@ -74,7 +76,7 @@ function cleanupMenu() {
     titleWords.forEach(word => word.classList.remove('active'));
 }
 
-function setupMenu(){
+async function setupMenu(){
     let currentIndex = 0;
     titleWords[currentIndex].classList.add('active');
     wordInterval = setInterval(() => {
@@ -91,6 +93,9 @@ function setupMenu(){
             randomWord.style.animation = 'shake-glitch 1s infinite alternate';
         }, 300);
     }, 3000);
+    if (await getLatestSaveSlot() === null) {
+        document.getElementById('btn-menu-continue').classList.add('hidden');
+    } else document.getElementById('btn-menu-continue').classList.remove('hidden');
     //playBGM('menu.ogg');
 }
 
@@ -109,6 +114,38 @@ Neutralino.events.on("ready", async () => {
     document.getElementById('btn-effects').addEventListener('click', () => changePnl(document.getElementById('effects'), sidePnls));
     document.getElementById('btn-recipes').addEventListener('click', () => changePnl(document.getElementById('recipes'), sidePnls));
 
+    for (let i = 0; i < 3; i++) {
+        updateSaveSlotUI(i);
+        const slotPath = `saves/slot${i}.json`;
+        document.getElementById(`btn-slot-${i}`).addEventListener('click', async () => {
+            const data = await verifyPath(slotPath);
+            if (data) {
+                userConfirmation('Load save slot or overwrite?', 'Load', 'Overwrite').then(async (result) => {
+                    if (result === 0) await loadGame(i);
+                    if (result === 1) await saveGame(i);
+                    if (result === 2) return;
+                });
+            } else {
+                saveGame(i);
+            }
+        });
+        document.getElementById(`btn-slot-${i}`).addEventListener('mouseover', async () => {
+            if (saveSlotsCache[i]) {
+                const playerData = saveSlotsCache[i].player;
+                pnlSlotInfo.innerHTML = `
+                    <p>SLOT INFO</p>
+                    <h4>The ${playerData.title} | Lv.${playerData.level}</h4>
+                    <p>Distance: ${playerData.distance}</p>
+                    <p>Playtime: ${saveSlotsCache[i].playtime}</p>
+                    <p>Kills: ${saveSlotsCache[i].kills}</p>
+                `;
+            }
+        });
+        document.getElementById(`btn-slot-${i}`).addEventListener('mouseout', async () => {
+            pnlSlotInfo.innerHTML = '';
+        });
+    }
+
     document.addEventListener('contextmenu', function(event) {
         event.preventDefault();
     });
@@ -126,6 +163,13 @@ Neutralino.events.on("ready", async () => {
         if (!exists) {
             await Neutralino.filesystem.createDirectory(dirPath);
         }
+    }
+
+    let commonFile = await getJsonFile(COMMON_PATH);
+    if(commonFile !== null){
+        Object.assign(commonData, commonFile);
+    } else {
+        await setJsonFile(COMMON_PATH, commonData);
     }
 
     let configFile = await getJsonFile(CONFIG_PATH);
@@ -169,6 +213,24 @@ Neutralino.events.on("ready", async () => {
 
     document.getElementById('settings').addEventListener('change', debounce(saveConfig, 300));
 
+    document.getElementById('btn-exit-game').addEventListener('click', async () => {
+        await userConfirmation('Exit game? All progress will be lost', 'Exit', 'Restart').then(async (result) => {
+            if (result === 0) {
+                Neutralino.app.exit();
+            } else if (result === 1) {
+                clearAllEnemies();
+                clearAllEvents();
+                player.destroy();
+                changePnl(document.getElementById('menu-container'), gamePnls);
+                pnlMenu.classList.add('screen-on');
+                setupMenu();
+            }
+        });
+    });
+
+    document.getElementById('btn-menu-start').addEventListener('click', () => startGame(true));
+    document.getElementById('btn-menu-continue').addEventListener('click', () => startGame(false));
+
     document.getElementById('constitution-row').setAttribute('data-tooltip', `
         <p class="tooltip-name">Constitution</p>
         <p class="tooltip-description">"Increases your resistance to damage and increases your maximum health"</p>
@@ -196,44 +258,47 @@ function saveConfig(){
     setJsonFile(CONFIG_PATH, config);
 }
 
-document.getElementById('btn-exit-game').addEventListener('click', async () => {
-    await userConfirmation('Exit game? All progress will be lost', 'Exit', 'Restart').then(async (result) => {
-        if (result === 0) {
-            Neutralino.app.exit();
-        } else if (result === 1) {
-            clearAllEnemies();
-            clearAllEvents();
-            player.destroy();
-            changePnl(document.getElementById('menu-container'), gamePnls);
-            pnlMenu.classList.add('screen-on');
-            setupMenu();
+async function getLatestSaveSlot() {
+    let latestSlot = null;
+    let latestTimestamp = 0;
+    for (let i = 0; i < 3; i++) {
+        const savePath = `saves/slot${i}.json`;
+        const saveData = await getJsonFile(savePath);
+        if (saveData && saveData.timestamp > latestTimestamp) {
+            latestTimestamp = saveData.timestamp;
+            latestSlot = i;
         }
-    });
-});
+    }
+    return latestSlot;
+}
 
-document.getElementById('btn-menu-start').addEventListener('click', () => {
+function startGame(isNew){
     cleanupMenu();
     pnlMenu.classList.remove('screen-on');
     pnlMenu.classList.add('screen-off');
-    setTimeout(() => {
+    setTimeout( async () => {
         pnlMenu.classList.remove('screen-off');
-        startGame();
+        if (isNew) newGame();
+        else loadGame(await getLatestSaveSlot());
         changePnl(document.getElementById('game-container'), gamePnls);
         changePnl(document.getElementById('character'), sidePnls);
     }, 500);
-});
+}
 
-function startGame(){
-    document.body.classList.remove('player-dead');
+function newGame(){
     isLoading = true;
+    document.body.classList.remove('player-dead');
     document.getElementById('btn-advance').disabled = false;
     createPlayer();
+    player.startPlaytime();
+    player.updateStats();
     setBackground('corridor.png');
     //playBGM('corridor1.ogg');
     showDialog('You enter the dark dungeon...');
     isLoading = false;
 }
 
+//@title ADVANCE
 function attemptAdvance(){
     if (player.isDead) return false;
     if (enemies.length === 0) {
@@ -340,19 +405,128 @@ function advance() {
     }, 500);
 }
 
+//@title SAVE / LOAD
+async function updateSaveSlotUI(slot) {
+    const savePath = `saves/slot${slot}.json`;
+    if (!saveSlotsCache[slot]) {
+        saveSlotsCache[slot] = await getJsonFile(savePath);
+    }
+    const slotElement = document.getElementById(`btn-slot-${slot}`);
+    const slotTitle = document.getElementById(`info-slot-${slot}`);
+    if (!saveSlotsCache[slot]) {
+        slotTitle.textContent = 'EMPTY';
+        slotTitle.style.color = 'var(--text-tertiary)';
+        slotElement.classList.add('empty');
+        return;
+    }
+    const date = new Date(saveSlotsCache[slot].timestamp);
+    const formattedDate = formatDate(date, true);
+    slotTitle.textContent = `${formattedDate}`;
+    slotTitle.style.color = 'var(--accent-color)';
+    slotElement.classList.remove('empty');
+}
 
+function clearSaveSlotCache(slot = null) {
+    if (slot === null) {
+        saveSlotsCache = Array(3).fill(null);
+    } else {
+        saveSlotsCache[slot] = null;
+    }
+}
 
-function verifyLoadData(data){
-    if (!data) return false;
-    if(data[version]!=version) {
-        showToast(`Warning! Versions mismatch - (save version: ${data[version]}/game version: ${version}) Some things may not work properly.`, 'warn');
-    } else showToast("Game loaded", "success");
+function canSave() {
+    if (!player) return false;
+    if (player.isDead) {
+        showToast('You can\'t save when you\'re dead', 'error');
+        return false;
+    }
+    if (enemies.length > 0) {
+        showToast('You can\'t save while in battle', 'error');
+        return false;
+    }
+    if (events.length > 0) {
+        showToast('You can\'t save when something is happening', 'error');
+        return false;
+    }
+    if (isLoading) {
+        showToast('You can\'t save while loading', 'error');
+        return false;
+    }
+    return true;
+}
+
+async function saveGame(slot = 0) {
+    if (!canSave()) return false;
+
+    const saveData = {
+        version: version,
+        player: player.toJSON(),
+        timestamp: Date.now(),
+        playtime: player.formatPlaytime(),
+        kills: player.getTotalKills()
+    };
+
+    try {
+        const savePath = `saves/slot${slot}.json`;
+        await setJsonFile(savePath, saveData);
+        clearSaveSlotCache(slot);
+        updateSaveSlotUI(slot);
+        showToast(`Game saved in slot ${slot}!`, 'success');
+        return true;
+    } catch (error) {
+        logError(error);
+        showToast('Failed to save game', 'error');
+        return false;
+    }
+}
+
+async function loadGame(slot = 0) {
+    const savePath = `saves/slot${slot}.json`;
+    const saveData = await getJsonFile(savePath);
     
-    log.forEach(function(eventText) {
-        const logLine = document.createElement("p");
-        logLine.textContent = eventText;
-        lblLog.appendChild(logLine);
-        lblLog.scrollTop = lblLog.scrollHeight;
-    }); 
-    // display dialog last log
+    if (!saveData) {
+        showToast('No save file found', 'warning');
+        return false;
+    }
+
+    if (saveData.version !== version) {
+        const confirm = await userConfirmation(`Warning: Save version (${saveData.version}) differs from game version (${version}). Some features may not work correctly. Load anyway?`);
+        if (confirm !== 0) return false;
+    }
+
+    try {
+        isLoading = true;
+
+        clearAllEnemies();
+        clearAllEvents();
+        if (player) player.destroy();
+        createPlayer();
+
+        Object.assign(player, saveData.player);
+
+        player.startPlaytime();
+        player.updateStats();
+        player.restoreTimers();
+
+        saveData.player.log?.forEach(l => addToLog(l));
+        showDialog(player.lastDialog || 'Game loaded successfully', { doLog: false });
+
+        document.body.classList.remove('player-dead');
+        document.getElementById('btn-advance').disabled = false;
+        setBackground('corridor.png');
+        //playBGM('corridor1.ogg');
+
+        isLoading = false;
+        showToast('Game loaded successfully', 'success');
+        return true;
+    } catch (error) {
+        isLoading = false;
+        logError(error);
+        showToast('Failed to load game', 'error');
+        return false;
+    }
+}
+
+export async function saveGlobalData(){
+    await setJsonFile(COMMON_PATH, commonData);
 }

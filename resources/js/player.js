@@ -5,6 +5,15 @@ import { playSFX, showDialog } from './config.js';
 import { formatDate, logError, attachTooltips, showToast, ensureValidSidePanel, getWeightedRandom } from './utils.js';
 import { enemies, clearAllEnemies } from './enemy.js';
 import { clearAllEvents } from './event.js';
+import { saveGlobalData } from './main.js';
+
+export const COMMON_PATH = 'data/common.json';
+export let commonData = {
+    deathpoint: {},
+    totalDeaths: 0,
+    kills: {},
+    maxDistance: 0
+};
 
 const attributes = [
     { name: 'constitution', isPercentage: false, isSkill: false, rarity: 1 },
@@ -63,6 +72,29 @@ export class Player {
         this.maxMp = this.calculateMaxMp();
         this.mp = this.maxMp;
         // UI
+        this.attackCooldown = 0;
+        this.attackReady = true;
+        this.playtime = 0;
+        this.playtimeInterval = null;
+        this.startDate = new Date();
+        this.distance = 0;
+        this.log = [];
+        this.inventory = {
+            items: {},
+            equipped: []
+        };
+        this.kills = {};
+        this.abilities = {};
+        this.activeEffects = {};
+        this.currentTargetingAbility = null;
+        this.unlockedRecipes = {};
+        this.thiefLoot = [];
+        this.isDead = false;
+        this.lastDialog = '';
+    }
+    
+    //@title UTILITARY METHODS
+    createUi() {
         this.hpBar = new ProgressBar({
             id: 'player-bar-hp',
             containerId: 'player-hp-container',
@@ -83,8 +115,6 @@ export class Player {
             textTemplate: (min, current, max) => `XP ${current}/${max} (Lv.${this.level})`,
             enableLowEffect: false
         });
-        this.attackCooldown = 0;
-        this.attackReady = true;
         this.attackCooldownBar = new ProgressBar({
             id: 'player-bar-attackcd',
             containerId: 'player-attackcd-container',
@@ -132,27 +162,8 @@ export class Player {
             recipes: document.getElementById('recipes-container'),
             log: document.getElementById('log-container')
         };
-
-        this.playtime = 0;
-        this.playtimeInterval = null;
-        this.startDate = new Date();
-        this.distance = 0;
-        this.log = [];
-        this.inventory = {
-            items: {},
-            equipped: []
-        };
-        this.kills = {};
-        this.abilities = {};
-        this.activeEffects = {};
-        this.currentTargetingAbility = null;
-        this.unlockedRecipes = {};
-        this.thiefLoot = [];
-        this.isDead = false;
-        this.startPlaytime();
     }
-    
-    //@title UTILITARY METHODS
+
     updateStats() {
         document.getElementById('current-startdate').textContent = formatDate(this.startDate, true);
         this.elements.title.textContent = this.title || 'Player';
@@ -160,6 +171,15 @@ export class Player {
         this.elements.playtime.textContent = this.formatPlaytime() || '00:00:00';
         this.elements.distance.textContent = this.distance || 0;
         this.elements.ap.textContent = this.attributePoints || 0;
+
+        this.hpBar.setMax(this.maxHp);
+        this.hpBar.setCurrent(this.hp);
+        this.mpBar.setMax(this.maxMp);
+        this.mpBar.setCurrent(this.mp);
+        this.xpBar.setMax(this.xpToNextLevel);
+        this.xpBar.setCurrent(this.xp);
+        this.attackCooldownBar.setMax(this.getAttributeValue('attackSpeed'));
+        this.attackCooldownBar.setCurrent(this.getAttributeValue('attackSpeed'));
         
         attributes.forEach(attr => {
             this.updateAttributeUi(attr.name);
@@ -204,7 +224,6 @@ export class Player {
     }
 
     startPlaytime() {
-        this.playtime = 0;
         this.playtimeInterval = setInterval(() => {
             if (this.isDead) {
                 clearInterval(this.playtimeInterval);
@@ -240,6 +259,62 @@ export class Player {
         this.elements.log.innerHTML = '';
         this.elements.inventory.innerHTML = '';
         player = null;
+    }
+
+    toJSON() {
+        const { elements, hpBar, mpBar, attackCooldownBar, xpBar, ...serializable } = this;
+
+        serializable.activeEffects = {};
+        for (const [effectId, effect] of Object.entries(this.activeEffects)) {
+            serializable.activeEffects[effectId] = {
+                ...effect,
+                remainingDuration: effect.hasDuration 
+                    ? effect.duration - (Date.now() - effect.appliedAt)
+                    : null,
+                nextTick: effect.interval ? Date.now() - effect.appliedAt : null
+            };
+        }
+        
+        serializable.abilities = {};
+        for (const [abilityId, ability] of Object.entries(this.abilities)) {
+            serializable.abilities[abilityId] = {
+                ...ability,
+                remainingCooldown: ability.remainingCooldown > Date.now() 
+                    ? ability.remainingCooldown - Date.now()
+                    : 0
+            };
+        }
+
+        return {...serializable};
+    }
+    
+    restoreTimers() {
+        for (const [effectId, effectData] of Object.entries(this.activeEffects || {})) {
+            if (effectData.remainingDuration > 0) {
+                this.activeEffects[effectId] = {
+                    ...effectData,
+                    appliedAt: Date.now() - (effectData.duration - effectData.remainingDuration),
+                    timer: null,
+                    interval: null
+                };
+                this.startEffectTimer(effectId);
+            }
+        }
+        
+        for (const [abilityId, abilityData] of Object.entries(this.abilities || {})) {
+            if (abilityData.remainingCooldown > 0) {
+                this.abilities[abilityId] = {
+                    ...abilityData,
+                    remainingCooldown: Date.now() + abilityData.remainingCooldown
+                };
+                this.startAbilityCooldown(abilityId);
+            }
+        }
+
+        if (this.attackCooldown > 0) {
+            this.attackCooldownBar.setCurrent(this.getAttributeValue('attackSpeed') - this.attackCooldown);
+            this.startAttackCooldown();
+        }
     }
 
     //@title ATTRIBUTE CALCULATIONS
@@ -405,8 +480,10 @@ export class Player {
         enemies.forEach(enemy => {
             if (enemy !== null) enemy.attackButton.disabled = true;
         });
-        this.attackCooldown = this.getAttributeValue('attackSpeed');
-        this.attackCooldownBar.setCurrent(0);
+        if (this.attackCooldown === 0) {
+            this.attackCooldown = this.getAttributeValue('attackSpeed');
+            this.attackCooldownBar.setCurrent(0);
+        }
         const cooldownInterval = setInterval( () => {
             this.attackCooldown -= 1000;
             if (this.attackCooldown <= 0) {
@@ -914,24 +991,33 @@ export class Player {
         showToast(`Effect removed!`, `${effect.isDebuff ? 'debuff' : 'buff'}`, {targetElement: document.getElementById('btn-effects')});
         return true;
     }
-
+    
     startEffectTimer(effectId) {
         const effect = this.activeEffects[effectId];
         if (!effect || !effect.hasDuration) return;
-        if (effect.timer) {
-            clearTimeout(effect.timer);
-        }
+
+        if (effect.timer) clearTimeout(effect.timer);
+        if (effect.interval) clearInterval(effect.interval);
+        
+        const elapsed = effect.nextTick || (Date.now() - effect.appliedAt);
+        const remainingDuration = effect.duration - elapsed;
+
         effect.timer = setTimeout(() => {
             this.removeEffect(effectId);
-        }, effect.duration);
-        if (effect.interval) {
-            clearInterval(effect.interval);
-        }
+        }, remainingDuration);
+
         effect.interval = setInterval(() => {
             if (this.isDead || !this.activeEffects[effectId]) return;
             this.processEffectTick(effectId);
             this.updateEffectsUI();
         }, 1000);
+        
+        if (effect.nextTick && effect.nextTick >= 1000) {
+            setTimeout(() => {
+                this.processEffectTick(effectId);
+                this.updateEffectsUI();
+            }, 1000 - (effect.nextTick % 1000));
+        }
     }
 
     processEffectTick(effectId) {
@@ -1419,13 +1505,21 @@ function gameOver(causeOfDeath) {
     document.body.classList.add('player-dead');
     document.getElementById('btn-advance').disabled = true;
     ensureValidSidePanel();
+    commonData.totalDeaths += 1;
+    commonData.deathpoint = {
+        distance: player.distance,
+        timestamp: Date.now(),
+        killedBy: causeOfDeath,
+        items: player.inventory.items
+    };
+    saveGlobalData();
 }
 
 let player = null;
 
 export function createPlayer() {
     player = new Player();
-    player.updateStats();
+    player.createUi();
     playerStartingItems();
     playerDebug();
     return player;
