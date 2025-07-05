@@ -305,13 +305,10 @@ function attemptAdvance(){
         advance();
         return true;
     }
-    const canEscape = enemies.every(enemy => 
-        enemy.onPlayerAttemptEscape()
-    );
+    const canEscape = enemies.every(enemy => enemy.onPlayerAttemptEscape());
     if (canEscape) {
         showDialog(`You successfully escaped the battle!`);
-        clearAllEnemies();
-        advance();
+        advance(true);
         return true;
     } else {
         showDialog(`Escape failed!`);
@@ -331,8 +328,9 @@ function getModifiedEnemies(){
     return getWeightedRandom(eligibleEnemies);
 }
 
-function advance() {
+export function advance(isSafe = false) {
     document.getElementById('btn-advance').textContent = 'ADVANCE';
+    clearAllEnemies();
     clearAllEvents();
     player.resetBattle();
     document.getElementById('btn-advance').disabled = true;
@@ -356,7 +354,8 @@ function advance() {
             logError(new Error('No outcome found'));
             return;
         }
-        switch(outcome.id) {
+        const result = isSafe ? 'safe' : outcome.id;
+        switch(result) {
             case 'outcome-enemy':{
                 showDialog('An enemy approaches!');
                 let selectedEnemy = getModifiedEnemies();
@@ -397,8 +396,13 @@ function advance() {
                 callEvent('event-seller');
                 break;
             }
-            default: {
+            case 'outcome-nothing': {
                 showDialog('You keep going...');
+                break;
+            }
+            case 'safe': break;
+            default: {
+                logError(new Error(`Outcome ${outcome.id} not found`));
                 break;
             }
         }

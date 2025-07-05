@@ -66,6 +66,7 @@ export const enemies = [
 
 //@title ABILITIES
 export const abilities = [
+    //@subtitle Passives
     {
         id: "passive-killall_50",
         name: "Bathed in blood",
@@ -82,6 +83,7 @@ export const abilities = [
         },
         source: "Obtained from killing 50 enemies"
     },
+    //@subtitle Powers
     {
         id: "power-protect",
         name: "Protect",
@@ -123,7 +125,8 @@ export const effects = [
         value: 2,
         icon: "icon-poison-bottle",
         isDebuff: true,
-        target: "ANY"
+        target: "ANY",
+        rarity: 3
     },
     {
         id: "effect-reverse_damage",
@@ -135,7 +138,8 @@ export const effects = [
         uses: 3,
         icon: "icon-divert",
         isDebuff: true,
-        target: "ANY"
+        target: "ANY",
+        rarity: 3
     },
     {
         id: "effect-protected",
@@ -148,7 +152,8 @@ export const effects = [
         value: 40,
         icon: "icon-shield",
         isDebuff: false,
-        target: "ANY"
+        target: "ANY",
+        rarity: 3
     }
 ];
 
@@ -329,14 +334,16 @@ export const items = [
         name: 'Strange Potion',
         description: 'A failed potion with unpredictable effects',
         type: 'Consumables',
-        subType: 'Enhancers'
+        subType: 'Enhancers',
+        effect: { type: 'RANDOM' }
     },
     {
         id: 'potion-reset_ap',
         name: 'Potion of Doubt',
         description: 'Resets all your attributes to 1 and gives your points back',
         type: 'Consumables',
-        subType: 'Enhancers'
+        subType: 'Enhancers',
+        effect: { type: 'RESET' }
     },
     {
         id: 'scroll-teleport',
@@ -347,12 +354,12 @@ export const items = [
         rarity: 3,
         price: 50,
         currency: 'currency-gold_coin',
-        effect: { type: 'TELEPORT', usage: 'ANY' }
+        effect: { type: 'TELEPORT' }
     },
     {
         id: 'scroll-summon_seller',
         name: 'Summon Seller Scroll',
-        description: 'If not in a battle, summons the Goblin Salesman',
+        description: 'When not in battle, summons the Goblin Salesman',
         type: 'Consumables',
         subType: 'Scrolls',
         rarity: 1,
@@ -363,13 +370,35 @@ export const items = [
     {
         id: 'scroll-summon_mutant',
         name: 'Summon Mutant Scroll',
-        description: 'If not in a battle, summons a mutant enemy',
+        description: 'When not in battle, summons a mutant enemy',
         type: 'Consumables',
         subType: 'Scrolls',
         rarity: 1,
         price: 15,
         currency: 'currency-gold_coin',
         effect: { type: 'SUMMON_TYPE', list: 'enemies', id: 'MUTANT', usage: 'SAFE' }
+    },
+    {
+        id: 'scroll-summon_anomaly',
+        name: 'Summon Anomaly Scroll',
+        description: 'When not in battle, summons an enemy anomaly',
+        type: 'Consumables',
+        subType: 'Scrolls',
+        rarity: 1,
+        price: 15,
+        currency: 'currency-gold_coin',
+        effect: { type: 'SUMMON_TYPE', list: 'enemies', id: 'ANOMALY', usage: 'SAFE' }
+    },
+    {
+        id: 'scroll-summon_undead',
+        name: 'Summon Undead Scroll',
+        description: 'When not in battle, summons an undead enemy',
+        type: 'Consumables',
+        subType: 'Scrolls',
+        rarity: 2,
+        price: 15,
+        currency: 'currency-gold_coin',
+        effect: { type: 'SUMMON_TYPE', list: 'enemies', id: 'UNDEAD', usage: 'SAFE' }
     },
     //@subtitle Equipments
     {

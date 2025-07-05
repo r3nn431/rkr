@@ -2,10 +2,10 @@
 import * as db from './database.js';
 import ProgressBar from './progressBar.js';
 import { playSFX, showDialog } from './config.js';
-import { formatDate, logError, attachTooltips, showToast, ensureValidSidePanel, getWeightedRandom } from './utils.js';
-import { enemies, clearAllEnemies } from './enemy.js';
-import { clearAllEvents } from './event.js';
-import { saveGlobalData } from './main.js';
+import { formatDate, logError, attachTooltips, showToast, ensureValidSidePanel, getWeightedRandom, getRandomInt } from './utils.js';
+import { enemies, clearAllEnemies, callEnemy } from './enemy.js';
+import { events, clearAllEvents, callEvent } from './event.js';
+import { advance, saveGlobalData } from './main.js';
 
 export const COMMON_PATH = 'data/common.json';
 export let commonData = {
@@ -16,22 +16,22 @@ export let commonData = {
 };
 
 const attributes = [
-    { name: 'constitution', isPercentage: false, isSkill: false, rarity: 1 },
-    { name: 'strength', isPercentage: false, isSkill: false, rarity: 1 },
-    { name: 'dexterity', isPercentage: false, isSkill: false, rarity: 1 },
-    { name: 'arcane', isPercentage: false, isSkill: false, rarity: 1 },
-    { name: 'attack', isPercentage: false, isSkill: false, rarity: 1 },
-    { name: 'defense', isPercentage: true, isSkill: false, rarity: 0 },
-    { name: 'evasion', isPercentage: true, isSkill: false, rarity: 0 },
-    { name: 'stealth', isPercentage: true, isSkill: false, rarity: 0 },
-    { name: 'accuracy', isPercentage: true, isSkill: false, rarity: 0 },
-    { name: 'criticalChance', isPercentage: true, isSkill: false, rarity: 0, formattedName: 'critical chance' },
-    { name: 'criticalMultiplier', isPercentage: false, isSkill: false, rarity: 0, formattedName: 'critical multiplier' },
-    { name: 'criticalResistance', isPercentage: true, isSkill: false, rarity: 0, formattedName: 'critical resistance' },
-    { name: 'luck', isPercentage: false, isSkill: false, rarity: 0 },
-    { name: 'alchemy', isPercentage: false, isSkill: true, rarity: 0 },
-    { name: 'craftsmanship', isPercentage: false, isSkill: true, rarity: 0 },
-    { name: 'attackSpeed', isPercentage: false, isSkill: false, rarity: 0, formattedName: 'attack speed' },
+    { name: 'constitution', isPercentage: false, isSkill: false, rarity: 1, isMain: true },
+    { name: 'strength', isPercentage: false, isSkill: false, rarity: 1, isMain: true },
+    { name: 'dexterity', isPercentage: false, isSkill: false, rarity: 1, isMain: true },
+    { name: 'arcane', isPercentage: false, isSkill: false, rarity: 1, isMain: true },
+    { name: 'attack', isPercentage: false, isSkill: false, rarity: 1, isMain: false },
+    { name: 'defense', isPercentage: true, isSkill: false, rarity: 0, isMain: false },
+    { name: 'evasion', isPercentage: true, isSkill: false, rarity: 0, isMain: false },
+    { name: 'stealth', isPercentage: true, isSkill: false, rarity: 0, isMain: false },
+    { name: 'accuracy', isPercentage: true, isSkill: false, rarity: 0, isMain: false },
+    { name: 'criticalChance', isPercentage: true, isSkill: false, rarity: 0, formattedName: 'critical chance', isMain: false },
+    { name: 'criticalMultiplier', isPercentage: false, isSkill: false, rarity: 0, formattedName: 'critical multiplier', isMain: false },
+    { name: 'criticalResistance', isPercentage: true, isSkill: false, rarity: 0, formattedName: 'critical resistance', isMain: false },
+    { name: 'luck', isPercentage: false, isSkill: false, rarity: 0, isMain: false },
+    { name: 'alchemy', isPercentage: false, isSkill: true, rarity: 0, isMain: false },
+    { name: 'craftsmanship', isPercentage: false, isSkill: true, rarity: 0, isMain: false },
+    { name: 'attackSpeed', isPercentage: false, isSkill: false, rarity: 0, formattedName: 'attack speed', isMain: false },
 ];
 
 const targetNames = {
@@ -45,10 +45,10 @@ export class Player {
         this.title = 'Newborn';
         this.attributePoints = 0;
         // ATTRIBUTES
-        this.constitution = { value: 1, minValue: 1, maxValue: 100, tempValue: 0 };
-        this.strength = { value: 1, minValue: 1, maxValue: 100, tempValue: 0 };
-        this.dexterity = { value: 1, minValue: 1, maxValue: 100, tempValue: 0 };
-        this.arcane = { value: 1, minValue: 1, maxValue: 100, tempValue: 0 };
+        this.constitution = { value: 1, minValue: 1, maxValue: 100, tempValue: 0, pointsSpent: 0 };
+        this.strength = { value: 1, minValue: 1, maxValue: 100, tempValue: 0, pointsSpent: 0 };
+        this.dexterity = { value: 1, minValue: 1, maxValue: 100, tempValue: 0, pointsSpent: 0 };
+        this.arcane = { value: 1, minValue: 1, maxValue: 100, tempValue: 0, pointsSpent: 0 };
         // MODIFIERS
         this.defense = { value: 0, minValue: 0, maxValue: 90, tempValue: 0 };
         this.attack = { value: 0, minValue: 0, maxValue: 200, tempValue: 0 };
@@ -184,6 +184,7 @@ export class Player {
         attributes.forEach(attr => {
             this.updateAttributeUi(attr.name);
         });
+        this.showAttributesControls();
         
         this.updateInventoryUI();
         this.updateAbilitiesUI();
@@ -221,6 +222,21 @@ export class Player {
         } else {
             this.elements[attr].style.color = 'var(--text-primary)';
         }
+    }
+
+    isCorrectUsage(usage){
+        switch (usage) {
+            case "SAFE": {
+                return enemies.length === 0 && events.length === 0;
+            }
+            case "BATTLE": {
+                return enemies.length > 0;
+            }
+            case "ANY": {
+                return true;
+            }
+        }
+        return true;
     }
 
     startPlaytime() {
@@ -382,7 +398,7 @@ export class Player {
         this.xpToNextLevel = this.calculateXpToNextLevel();
         this.heal(this.maxHp);
         showDialog(`Level up! Now you're level ${this.level}!`);
-        showToast(`Level ${this.level}!`, 'added', {position: 'top'});
+        showToast(`Level ${this.level}!`, 'buff', {position: 'top'});
         this.showAttributesControls();
     }
 
@@ -433,6 +449,7 @@ export class Player {
         this.applyModifier(attribute, 1);
         this.attributePoints -= 1;
         this.elements.ap.textContent = this.attributePoints;
+        this[attribute].pointsSpent++;
         this.showAttributesControls();
         return true;
     }
@@ -681,7 +698,7 @@ export class Player {
                     }
                     ability.effects.forEach(effectId => {
                         if (!this.canReceiveEffect(effectId)) return false;
-                        this.addEffect(effectId, 'player');
+                        this.addEffect(effectId, ability.name);
                     });
                 }
 
@@ -945,6 +962,9 @@ export class Player {
 
     //@title EFFECTS
     canReceiveEffect(effectId) {
+        const effect = db.effects.find(e => e.id === effectId);
+        if (effect.target === 'ENEMY') return false;
+        if (this.isDead) return false;
         if (this.hasEffect(effectId)) return false;
         return true;
     }
@@ -988,7 +1008,7 @@ export class Player {
             this.applyModifier(effect.stat, -effect.value, true);
         }
         this.updateEffectsUI();
-        showToast(`Effect removed!`, `${effect.isDebuff ? 'debuff' : 'buff'}`, {targetElement: document.getElementById('btn-effects')});
+        showToast(`Effect removed!`, `${effect.isDebuff ? 'buff' : 'info'}`, {targetElement: document.getElementById('btn-effects')});
         return true;
     }
     
@@ -1147,14 +1167,80 @@ export class Player {
                     return true;
                 }
             }
-            case 'ENHANCERS': { //@todo strange potion, reset ap
-                break;
+            case 'ENHANCERS': {
+                if (item.details.effect.type === "RANDOM") {
+                    const elegibleEffects = db.effects.filter(effect => this.canReceiveEffect(effect.id));
+                    const randomEffect = getWeightedRandom(elegibleEffects);
+                    this.addEffect(randomEffect.id, item.details.name);
+                    this.removeItem(itemId);
+                    return true;
+                }
+                if (item.details.effect.type === "RESET") {
+                    let pointsToReset = 0;
+                    attributes.forEach(attribute => {
+                        if (attribute.isMain && this[attribute.name].pointsSpent > 0) {
+                            this.applyModifier(attribute.name, -this[attribute.name].pointsSpent);
+                            pointsToReset += this[attribute.name].pointsSpent;
+                            this[attribute.name].pointsSpent = 0;
+                        }
+                    });
+                    if (pointsToReset <= 0) {
+                        showDialog("You don't have any points to reset.", {doLog: false});
+                        return false;
+                    }
+                    this.attributePoints += pointsToReset;
+                    this.elements.ap.textContent = this.attributePoints;
+                    this.showAttributesControls();
+                    this.removeItem(itemId);
+                    showDialog(`Used ${item.details.name}! ${pointsToReset} attribute points have been refunded.`);
+                    return true;
+                }
             }
             case 'SCROLLS': {
-                break;
+                if (item.details.effect.type === "TELEPORT") {
+                    if (enemies.length > 0 && enemies.some(enemy => enemy.disablePlayerEscape)) {
+                        showDialog(`You can't escape this battle.`, {doLog: false});
+                        return false;
+                    }
+                    const randomDistance = getRandomInt(3, 13);
+                    this.distance += randomDistance;
+                    advance(true);
+                    this.removeItem(itemId);
+                    showDialog(`You have been teleported ${randomDistance + 1} spaces!`);
+                    return true;
+                }
+                if (item.details.effect.type === "SUMMON_ID") {
+                    if (!this.isCorrectUsage(item.details.effect.usage)) {
+                        showDialog(`You can't use ${item.details.name} now.`, {doLog: false});
+                        return false;
+                    }
+                    const selected = db[item.details.effect.list].find(called => called.id === item.details.effect.id);
+                    if (!selected) {
+                        logError(new Error(`Called ${item.details.effect.id} doesn't exist in ${item.details.effect.list}.`));
+                        return false;
+                    }
+                    if (item.details.effect.list === "enemies") callEnemy(selected.id);
+                    if (item.details.effect.list === "events") callEvent(selected.id);
+                    this.removeItem(itemId);
+                    showDialog(`Used ${item.details.name}! ${selected.name} has been summoned!`);
+                    return true;
+                }
+                if (item.details.effect.type === "SUMMON_TYPE") {
+                    if (!this.isCorrectUsage(item.details.effect.usage)) {
+                        showDialog(`You can't use ${item.details.name} now.`, {doLog: false});
+                        return false;
+                    }
+                    const elegibles = db.enemies.filter(enemy => enemy.type === item.details.effect.id && enemy.list === 'NORMAL');
+                    const selected = getWeightedRandom(elegibles);
+                    if (!selected) return false;
+                    callEnemy(selected.id);
+                    this.removeItem(itemId);
+                    showDialog(`Used ${item.details.name}! ${selected.name} has been summoned!`);
+                    return true;
+                }
             }
             default: {
-                logError(new Error(`Unknown item subtype: ${itemSubType}`));
+                logError(new Error(`Unknown ${itemSubType} or ${item.details.effect.type} item subType.`));
                 return false;
             }
         }
@@ -1349,8 +1435,8 @@ export class Player {
                 if (effect.type === 'EFFECT' && effect.usage === usage) {
                     const chanceToApply = effect.value !== undefined ? effect.value : 1;
                     if (Math.random() <= chanceToApply) {
-                        if (effect.target === 'SELF' && this.canReceiveEffect(effect.id)) this.addEffect(effect.id);
-                        if (effect.target === 'ENEMY' && enemy.canReceiveEffect(effect.id)) enemy.addEffect(effect.id);
+                        if (effect.target === 'SELF' && this.canReceiveEffect(effect.id)) this.addEffect(effect.id, item.name);
+                        if (effect.target === 'ENEMY' && enemy.canReceiveEffect(effect.id)) enemy.addEffect(effect.id, 'player');
                     }
                 }
             });

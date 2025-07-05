@@ -585,6 +585,8 @@ export class Enemy {
 
     //@title EFFECTS
     canReceiveEffect(effectId) {
+        const effect = db.effects.find(e => e.id === effectId);
+        if (effect.target === 'PLAYER') return false;
         if (this.hasEffect(effectId)) return false;
         return true;
     }
