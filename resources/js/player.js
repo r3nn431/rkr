@@ -55,7 +55,7 @@ export class Player {
         this.evasion = { value: 0, minValue: 0, maxValue: 90, tempValue: 0 };
         this.stealth = { value: 0, minValue: 0, maxValue: 100, tempValue: 0 };
         this.luck = { value: 1, minValue: 1, maxValue: 50, tempValue: 0 };
-        this.accuracy = { value: 90, minValue: 5, maxValue: 100, tempValue: 0 };
+        this.accuracy = { value: 98, minValue: 5, maxValue: 100, tempValue: 0 };
         this.criticalChance = { value: 5, minValue: 0, maxValue: 100, tempValue: 0 };
         this.criticalMultiplier = { value: 2, minValue: 2, maxValue: 10, tempValue: 0 };
         this.criticalResistance = { value: 0, minValue: 0, maxValue: 100, tempValue: 0 };
@@ -268,6 +268,9 @@ export class Player {
     }
 
     destroy() {
+        Object.keys(this.activeEffects).forEach(effectId => {
+            this.removeEffect(effectId);
+        });
         if (this.playtimeInterval) {
             clearInterval(this.playtimeInterval);
             this.playtimeInterval = null;
@@ -304,7 +307,7 @@ export class Player {
         return {...serializable};
     }
     
-    restoreTimers() {
+    restoreData() {
         for (const [effectId, effectData] of Object.entries(this.activeEffects || {})) {
             if (effectData.remainingDuration > 0) {
                 this.activeEffects[effectId] = {
@@ -593,7 +596,7 @@ export class Player {
             remainingCooldown: 0,
             usedThisBattle: false
         };
-        if (template.isPassive) this.applyAbilityEffects(id);
+        if (template.isPassive) this.applyPassiveEffects("ON_ADD");
         this.updateAbilitiesUI();
         showToast(`New ${template.isPassive ? 'passive' : 'power'} added!`, `${template.isPassive && template.isCurse ? 'debuff' : 'buff'}`, {targetElement: document.getElementById('btn-abilities')});
         return true;
@@ -606,13 +609,19 @@ export class Player {
         return true;
     }
     
-    applyAbilityEffects(passive) {
-        switch(passive){
-            case 'passive-killall_50': {
-                this.applyModifier('accuracy', 2);
-                break;
+    applyPassiveEffects(usage) {
+        Object.values(this.abilities).forEach(ability => {
+            if (ability.isPassive && ability.effects) {
+                ability.effects.forEach(effect => {
+                    if (effect.usage !== usage) return;
+                    if (effect.type === 'MODIFIER') {
+                        this.applyModifier(effect.id, effect.value);
+                    } else if (effect.type === 'EFFECT') {
+                        this.addEffect(effect.id, ability.name);
+                    }
+                });
             }
-        }
+        });
     }
 
     startAbilityCooldown(abilityId) {
@@ -909,6 +918,8 @@ export class Player {
         const formatValue = (val) => val !== undefined ? val : 'N/A';
         const costText = template.costValue ? `${formatValue(template.costValue)}x${template.costType || ''}` : 'None';
         const cooldownText = template.cooldown ? `${formatValue(template.cooldown) ? `${formatValue(template.cooldown)/1000}s` : ''}` : '0s';
+        let effectInfo = '';
+        let passiveSource = '';
         const metadataElements = [];
         if (!template.isPassive) {
             metadataElements.push(
@@ -916,30 +927,16 @@ export class Player {
                 `<div class="ability-meta"><span class="meta-label">Cooldown:</span> ${cooldownText}</div>`,
                 `<div class="ability-meta"><span class="meta-label">Target:</span> ${targetNames[template.target].toUpperCase() || template.target.replace('_', ' ') || 'NONE'}</div>`
             );
+            if (template.effects && template.effects.length > 0) {
+                effectInfo = ability.effects.map(effectId => {
+                    const effect = db.effects.find(e => e.id === effectId);
+                    return `<small class="ability-effect">'${effect.name}': ${effect.description}</small>`;
+                }).join('<br>');
+            }
         } else {
-            if (template.effects) {
-                metadataElements.push(
-                    `<div class="ability-meta"><span class="meta-label">Effects:\n</span>`
-                );
-                template.effects.forEach(effect => {
-                    metadataElements.push(
-                        `${effect.stat} +${effect.value}\n`
-                    );
-                });
-                metadataElements.push(`</div>`);
-            }
             if (template.source) {
-                metadataElements.push(
-                    `<div class="ability-meta"><span class="meta-label">Source:</span>${template.source}</div>`
-                );
+                passiveSource = `<div class="ability-meta"><span class="meta-label">Source:</span>${template.source}</div>`;
             }
-        }
-        let effectInfo = '';
-        if (ability.effects && ability.effects.length > 0) {
-            effectInfo = ability.effects.map(effectId => {
-                const effect = db.effects.find(e => e.id === effectId);
-                return `<small class="ability-effect">'${effect.name}': ${effect.description}</small>`;
-            }).join('<br>');
         }
         return `
             <div class="ability-item ${template.isPassive ? 'passive' : 'power'} ${template.isCurse ? 'curse' : ''}" 
@@ -953,6 +950,7 @@ export class Player {
                 </div>
                 <p class="ability-description">${template.description}</p>
                 ${effectInfo}
+                ${passiveSource}
                 <div class="ability-metadata">
                     ${metadataElements.join('')}
                 </div>

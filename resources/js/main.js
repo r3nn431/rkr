@@ -489,7 +489,7 @@ async function loadGame(slot = 0) {
     const saveData = await getJsonFile(savePath);
     
     if (!saveData) {
-        showToast('No save file found', 'warning');
+        showToast('No save file found', 'error');
         return false;
     }
 
@@ -500,21 +500,17 @@ async function loadGame(slot = 0) {
 
     try {
         isLoading = true;
-
         clearAllEnemies();
         clearAllEvents();
         if (player) player.destroy();
         createPlayer();
-
         Object.assign(player, saveData.player);
-
         player.startPlaytime();
         player.updateStats();
-        player.restoreTimers();
+        player.restoreData();
 
         saveData.player.log?.forEach(l => addToLog(l));
         showDialog(player.lastDialog || 'Game loaded successfully', { doLog: false });
-
         document.body.classList.remove('player-dead');
         document.getElementById('btn-advance').disabled = false;
         setBackground('corridor.png');

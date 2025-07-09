@@ -81,7 +81,10 @@ export const abilities = [
             type: null,
             amount: 50
         },
-        source: "Obtained from killing 50 enemies"
+        source: "Obtained from killing 50 enemies",
+        effects: [
+            { type: "", usage: "" }
+        ]
     },
     //@subtitle Powers
     {
