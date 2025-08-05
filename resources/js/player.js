@@ -509,6 +509,7 @@ export class Player {
             if (this.attackCooldown <= 0) {
                 if (player === null) return;
                 this.attackReady = true;
+                this.attackCooldown = 0;
                 this.attackCooldownBar.setCurrent(this.getAttributeValue('attackSpeed'));
                 clearInterval(cooldownInterval);
                 enemies.forEach(enemy => {
@@ -1388,6 +1389,7 @@ export class Player {
             effects: item.effects || []
         });
         this.applyEquipmentEffects(itemId);
+        if(item.subType === 'Weapons') this.startAttackCooldown();
         return true;
     }
 
@@ -1401,8 +1403,12 @@ export class Player {
 
     unequipItem(itemId) {
         if (this.isDead) return false;
+        const equippedItem = this.inventory.equipped.find(item => item.id === itemId);
         this.removeEquipmentEffects(itemId);
         this.inventory.equipped = this.inventory.equipped.filter(item => item.id !== itemId);
+        if (equippedItem && equippedItem.subType === 'Weapons') {
+            this.startAttackCooldown();
+        }
     }
 
     applyEquipmentEffects(itemId) {
