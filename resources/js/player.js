@@ -1273,6 +1273,8 @@ export class Player {
             'Accessories': 'Keep equipped to gain its effects and only 1 can be equipped at a time',
             'Weapons': 'Keep equipped to gain its effects and only 1 can be equipped at a time',
             'Armors': 'Keep equipped to gain its effects and only 1 can be equipped at a time',
+            'Common': 'Resources easily obtainable',
+            'Rare': 'Resources that are a bit harder to find',
             'Unknown': 'This is not supposed to be here'
         };
         for (const [type, subTypes] of Object.entries(categorizedItems)) {
@@ -1611,7 +1613,7 @@ export function createPlayer() {
     player = new Player();
     player.createUi();
     playerStartingItems();
-    playerDebug();
+    //playerDebug();
     return player;
 }
 

@@ -336,11 +336,12 @@ export function advance(isSafe = false) {
     document.getElementById('btn-advance').disabled = true;
     ensureValidSidePanel();
 
-    imgBackground.classList.remove('walk-effect-up', 'walk-effect-down');
+    imgBackground.classList.remove('walk-effect-up', 'walk-effect-down', 'walk-effect-up-alt', 'walk-effect-down-alt');
+    const useAltAnimation = Math.random() < 0.3;
     if(stepToggle) {
-        imgBackground.classList.add('walk-effect-up');
+        imgBackground.classList.add(useAltAnimation ? 'walk-effect-up-alt' : 'walk-effect-up');
     } else {
-        imgBackground.classList.add('walk-effect-down');
+        imgBackground.classList.add(useAltAnimation ? 'walk-effect-down-alt' : 'walk-effect-down');
     }
     stepToggle = !stepToggle;
 
